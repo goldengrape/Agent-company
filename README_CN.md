@@ -65,17 +65,35 @@ nanobot company init
 ```
 *(注：此命令将自动创建 `company` 目录及示例配置)*
 
-### 3. 定义岗位与流程
+### 3. 定义能力 (Capabilities)
 
-编辑 `company/POSTS.md` 添加你的第一个员工（例如“技术撰稿人”），并在 `company/WORKFLOWS.md` 中定义其工作流程。
+公司通过配置而非代码来扩展能力。
 
-### 4. 启动公司
+1.  **定义岗位**: 在 `company/POSTS.md` 中添加岗位描述。
+2.  **定义路由**: 在 `company/routes.json` 中添加任务路由规则。
+
+### 4. 委派任务 (Delegate Tasks)
+
+在 `workspace/tasks` 目录下创建 Markdown 文件委派任务。文件名必须匹配 `company/routes.json` 中定义的模式。
+
+**示例**: 创建 `workspace/tasks/TASK_NEWS_001.md`
+*(匹配路由 `TASK_NEWS_.*\.md` -> `Post_Tech_Analyst`)*
+
+```markdown
+# TASK: 每日科技新闻
+**ID**: NEWS_001
+
+## 目标
+搜索并总结今日最重要的 3条 AI 新闻。
+```
+
+### 5. 启动公司 (Run Company)
 
 ```bash
 nanobot company run
 ```
 
-Manager 将自动启动，监控 `workspace` 中的任务申请，并根据配置调度 Worker 进行工作。
+Manager 将自动启动，监控 `workspace/tasks`，根据文件名将任务分发给对应的 Agent，并生成报告到 `workspace/reports`。
 
 ---
 
