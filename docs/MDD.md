@@ -8,6 +8,23 @@
   - 根据 `Posts.md` 定义的技能要求，通过 `spawn` 工具生成特定配置的子级 Worker。
   - Manager 负责在 Worker 启动时注入特定的“公文处理上下文”。
 
+## 1.1 公司技能加载器 (Company Skill Loader)
+- **输入**: `company/SKILL.md`
+- **功能**:
+  - 验证 Company Skill 的完整性 (Posts, Workflows, Docs)。
+  - 解析 `POSTS.md` 并注册到 SubagentManager。
+  - 解析 `WORKFLOWS.md` 并初始化 Cron 任务 (如果需要)。
+- **Schema (SKILL.md)**:
+  ```yaml
+  name: "Company Name"
+  description: "..."
+  components:
+    posts: "./POSTS.md"
+    workflows: "./WORKFLOWS.md"
+    docs_schema: "./DOCS_SCHEMA.md"
+  skills_dir: "./skills"
+  ```
+
 ## 2. 任务执行模块 (Task Execution Worker)
 - **核心组件**：`AgentLoop`、`SkillsLoader`。
 - **逻辑说明**：

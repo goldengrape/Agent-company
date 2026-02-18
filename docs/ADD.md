@@ -3,7 +3,7 @@
 
 ## 1. 顶层映射 (Level 0)
 - **FR0**：实现一个基于公文流控制、具备 PDCA 循环的多 Agent 协作体系。
-- **DP0**：基于 nanobot 核心能力的“岗位-流程-公文”三位一体框架。
+- **DP0**：基于 nanobot 核心能力的“岗位-流程-公文”三位一体框架，封装为 **Company Skill**。
 
 ## 2. 一级分解 (Level 1)
 
@@ -13,6 +13,7 @@
 | FR2：专业任务执行 (执行具体常规任务) | DP2：员工模块 (Worker) | AgentLoop, SkillsLoader & Posts.md |
 | FR3：流程控制与审计 (PDCA 逻辑与公文流转) | DP3：公文流引擎 (Document Flow) | filesystem 工具组, CronService & Workflows.md |
 | FR4：知识持久化 (存储事实与执行日志) | DP4：独立记忆层 (Isolated Memory Instances) | MemoryStore (Per Agent), SessionManager & Docs.md |
+| FR5：公司定义封装 (模块化加载) | DP5：公司技能包 (Company Skill) | Loader, SKILL.md & company/ |
 
 ## 3. 设计矩阵 (Design Matrix)
 

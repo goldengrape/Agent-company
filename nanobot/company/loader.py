@@ -1,4 +1,5 @@
 import re
+import yaml
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict
@@ -27,22 +28,82 @@ class Route:
 class CompanyConfigLoader:
     """Loads company configuration from markdown files."""
     
-    def __init__(self, workspace_path: Path):
+    def __init__(self, workspace_path: Path, company_name: str | None = None):
         self.workspace = workspace_path
+        self.company_name = company_name
+        self.base_path = self._resolve_base_path()
         self.posts: Dict[str, Post] = {}
+        self.schemas: Dict[str, Schema] = {}
+        self.routes: List[Route] = []
+
+    def _resolve_base_path(self) -> Path:
+        """Resolve the base path for company configuration."""
+        # 1. Explicit name provided
+        if self.company_name:
+            return self.workspace / "companies" / self.company_name
+        
+        # 2. Check for companies/default
+        default_path = self.workspace / "companies" / "default"
+        if default_path.exists():
+            return default_path
+            
+        # 3. Fallback to legacy company/
+        legacy_path = self.workspace / "company"
+        return legacy_path
         self.schemas: Dict[str, Schema] = {}
         self.routes: List[Route] = []
         
     def load_all(self):
         """Load all configuration files."""
-        self._load_posts()
+        # Try loading from SKILL.md first
+        if not self._load_from_skill_def():
+            # Fallback to legacy default files
+            self._load_posts()
+            self._load_schemas()
+            
         # self._load_workflows() # Placeholder
-        self._load_schemas()
         self._load_routes()
+
+    def _load_from_skill_def(self) -> bool:
+        """
+        Try to load configuration from company/SKILL.md.
+        Returns True if successful, False otherwise.
+        """
+        skill_file = self.base_path / "SKILL.md"
+        if not skill_file.exists():
+            return False
+            
+        try:
+            content = skill_file.read_text(encoding="utf-8")
+            # Extract frontmatter
+            match = re.search(r'^---\n(.*?)\n---', content, re.DOTALL)
+            if not match:
+                return False
+                
+            data = yaml.safe_load(match.group(1))
+            components = data.get("components", {})
+            
+            # Load components based on paths in SKILL.md
+            # Note: paths in SKILL.md are relative to SKILL.md location (base_path)
+            
+            if "posts" in components:
+                posts_path = self.base_path / components["posts"]
+                if posts_path.exists():
+                    self._parse_posts_content(posts_path.read_text(encoding="utf-8"))
+                    
+            if "docs_schema" in components:
+                schema_path = self.base_path / components["docs_schema"]
+                if schema_path.exists():
+                    self._parse_schemas_content(schema_path.read_text(encoding="utf-8"))
+            
+            return True
+        except Exception as e:
+            print(f"Error loading SKILL.md: {e}")
+            return False
         
     def _load_posts(self):
         """Parse POSTS.md and populate self.posts."""
-        posts_file = self.workspace / "company" / "POSTS.md"
+        posts_file = self.base_path / "POSTS.md"
         if not posts_file.exists():
             return
             
@@ -52,7 +113,7 @@ class CompanyConfigLoader:
     def _load_routes(self):
         """Load routes from routes.json."""
         import json
-        routes_file = self.workspace / "company" / "routes.json"
+        routes_file = self.base_path / "routes.json"
         if not routes_file.exists():
             return
             
@@ -69,7 +130,7 @@ class CompanyConfigLoader:
         
     def _load_schemas(self):
         """Parse DOCS_SCHEMA.md and populate self.schemas."""
-        schema_file = self.workspace / "company" / "DOCS_SCHEMA.md"
+        schema_file = self.base_path / "DOCS_SCHEMA.md"
         if not schema_file.exists():
             return
             
