@@ -1,0 +1,4 @@
+---
+name: Weather Co
+components:
+---
