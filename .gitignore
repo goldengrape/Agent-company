@@ -205,3 +205,19 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# --- Additional exclusions from .gitignore copy ---
+
+# Editor
+.vscode/
+.idea/
+
+# Config
+config.json
+
+# Nanobot
+workspace/
+debug_output*.txt
+logs/
+verify_log*.txt
+test_output.txt
