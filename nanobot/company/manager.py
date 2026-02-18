@@ -22,8 +22,9 @@ class CompanyManager:
     - Monitors progress.
     """
 
-    def __init__(self, workspace: Path):
+    def __init__(self, workspace: Path, company_name: str | None = None):
         self.workspace = workspace
+        self.company_name = company_name
         self.config = load_config()
         self.bus = MessageBus() # We might need a shared bus if we want to listen to events
         self.provider = self._make_provider(self.config)
@@ -40,7 +41,7 @@ class CompanyManager:
             restrict_to_workspace=self.config.tools.restrict_to_workspace,
         )
         
-        self.loader = CompanyConfigLoader(workspace)
+        self.loader = CompanyConfigLoader(workspace, company_name)
         self.registry = WorkerRegistry(workspace)
 
     def _make_provider(self, config: Config):
@@ -69,7 +70,7 @@ class CompanyManager:
         Main loop for the company manager.
         For now, this is a one-shot scan and execute.
         """
-        logger.info("Company Manager started.")
+        logger.info(f"Company Manager started. Company: {self.company_name or 'Default'}")
         self.loader.load_all()
         
         # 1. Scan for tasks
