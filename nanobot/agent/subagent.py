@@ -21,6 +21,8 @@ from nanobot.agent.skills import SkillsLoader
 from nanobot.agent.skills import SkillsLoader
 from nanobot.agent.worker_registry import WorkerRegistry
 from nanobot.agent.tools.document_flow import DocumentFlowTool
+from nanobot.agent.memory import MemoryStore
+from datetime import datetime
 
 
 class SubagentManager:
@@ -166,6 +168,10 @@ class SubagentManager:
             isolated_context = ContextBuilder(self.workspace, agent_id=task_id)
             isolated_skills = SkillsLoader(self.workspace)
             
+            # Initialize isolated memory store
+            memory_store = MemoryStore(self.workspace, agent_id=task_id)
+            memory_store.append_history(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Task Started: {task}")
+            
             # Build subagent tools
             tools = ToolRegistry()
             self._register_tools(tools, post)
@@ -184,7 +190,7 @@ class SubagentManager:
                         system_prompt += f"\n\n# Skills\n{skills_content}"
             else:
                 # Fallback for ad-hoc tasks (legacy behaviour)
-                system_prompt = self._build_subagent_prompt(task)
+                system_prompt = self._build_subagent_prompt(task, memory_store)
             
             messages: list[dict[str, Any]] = [
                 {"role": "system", "content": system_prompt},
@@ -246,12 +252,18 @@ class SubagentManager:
             
             logger.info(f"Subagent [{task_id}] completed successfully")
             self.registry.update_status(task_id, "completed", final_result)
+            memory_store.append_history(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Task Completed. Result: {final_result}")
             await self._announce_result(task_id, label, task, final_result, origin, "ok")
             
         except Exception as e:
             error_msg = f"Error: {str(e)}"
             logger.error(f"Subagent [{task_id}] failed: {e}")
             self.registry.update_status(task_id, "failed", error_msg)
+            # We might not have memory_store if it failed early, but try safely
+            try:
+                 MemoryStore(self.workspace, agent_id=task_id).append_history(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Task Failed: {error_msg}")
+            except Exception:
+                pass
             await self._announce_result(task_id, label, task, error_msg, origin, "error")
     
     async def _announce_result(
@@ -337,12 +349,16 @@ Summarize this naturally for the user. Keep it brief (1-2 sentences). Do not men
             logger.critical("SECURITY BREACH: 'exec' tool detected in 'Post_Weather_Analyst' registry! Forcing removal.")
             registry.unregister("exec")
 
-    def _build_subagent_prompt(self, task: str) -> str:
+    def _build_subagent_prompt(self, task: str, memory_store: MemoryStore) -> str:
         """Build a focused system prompt for the subagent."""
         from datetime import datetime
         import time as _time
         now = datetime.now().strftime("%Y-%m-%d %H:%M (%A)")
         tz = _time.strftime("%Z") or "UTC"
+        
+        # Get memory paths for the prompt
+        long_term_path = memory_store.memory_file
+        history_path = memory_store.history_file
 
         return f"""# Subagent
 
@@ -371,6 +387,10 @@ You are a subagent spawned by the main agent to complete a specific task.
 ## Workspace
 Your workspace is at: {self.workspace}
 Skills are available at: {self.workspace}/skills/ (read SKILL.md files as needed)
+
+## Memory (Isolated)
+- Long-term memory: {long_term_path}
+- History log: {history_path}
 
 When you have completed the task, provide a clear summary of your findings or actions."""
 
