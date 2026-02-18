@@ -1,0 +1,14 @@
+{
+    "routes": [
+        {
+            "pattern": "TASK_WEATHER_.*\\.md",
+            "post_id": "Post_Weather_Analyst",
+            "context_template": "Please process this task file: {filename}\n\nContent:\n{content}"
+        },
+        {
+            "pattern": "TASK_NEWS_.*\\.md",
+            "post_id": "Post_Tech_Analyst",
+            "context_template": "Analyze the following news task: {filename}\n\n{content}"
+        }
+    ]
+}

@@ -93,31 +93,29 @@ class CompanyManager:
 
     async def _process_task_file(self, task_file: Path):
         filename = task_file.name
+        content = task_file.read_text(encoding="utf-8")
         
-        # Determine Task Type and required Post
-        # Logic: 
-        # TASK_WEATHER_*.md -> Post_Weather_Analyst
+        # Match task against routes
+        matched_route = None
+        for route in self.loader.routes:
+            if re.match(route.pattern, filename):
+                matched_route = route
+                break
         
-        post_id = None
-        if "WEATHER" in filename:
-            post_id = "Post_Weather_Analyst"
-        else:
-            logger.info(f"Skipping unknown task type: {filename}")
+        if not matched_route:
+            logger.info(f"Skipping task {filename}: No matching route found.")
             return
 
-        # Check if already assigned
-        # We use filename as the task_id for simplicity in this version, 
-        # or we check if any worker is working on this file.
-        # A better way is to check the file content for status, but for now let's check registry.
+        post_id = matched_route.post_id
+
+
+        # Check if already assigned (simple check)
+        # TODO: Implement proper state tracking for tasks
         
-        # Simple check: has this file been processed?
-        # We'll use the filename as a unique key for now combined with "processed"
-        # Ideally, we should update the task file status to "Active". 
-        
-        # For this specific task, we will just spawn the worker.
-        
-        content = task_file.read_text(encoding="utf-8")
-        task_prompt = f"Please process this task file: {task_file}\n\nContent:\n{content}"
+        task_prompt = matched_route.context_template.format(
+            filename=filename,
+            content=content
+        )
         
         logger.info(f"Assigning {filename} to {post_id}...")
         

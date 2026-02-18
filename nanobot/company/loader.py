@@ -18,6 +18,12 @@ class Schema:
     target_dir: str
     template: str
 
+@dataclass
+class Route:
+    pattern: str
+    post_id: str
+    context_template: str
+
 class CompanyConfigLoader:
     """Loads company configuration from markdown files."""
     
@@ -25,12 +31,14 @@ class CompanyConfigLoader:
         self.workspace = workspace_path
         self.posts: Dict[str, Post] = {}
         self.schemas: Dict[str, Schema] = {}
+        self.routes: List[Route] = []
         
     def load_all(self):
         """Load all configuration files."""
         self._load_posts()
         # self._load_workflows() # Placeholder
         self._load_schemas()
+        self._load_routes()
         
     def _load_posts(self):
         """Parse POSTS.md and populate self.posts."""
@@ -40,6 +48,24 @@ class CompanyConfigLoader:
             
         content = posts_file.read_text(encoding="utf-8")
         self._parse_posts_content(content)
+
+    def _load_routes(self):
+        """Load routes from routes.json."""
+        import json
+        routes_file = self.workspace / "company" / "routes.json"
+        if not routes_file.exists():
+            return
+            
+        try:
+            data = json.loads(routes_file.read_text(encoding="utf-8"))
+            for route_data in data.get("routes", []):
+                self.routes.append(Route(
+                    pattern=route_data["pattern"],
+                    post_id=route_data["post_id"],
+                    context_template=route_data["context_template"]
+                ))
+        except Exception as e:
+            print(f"Error loading routes: {e}")
         
     def _load_schemas(self):
         """Parse DOCS_SCHEMA.md and populate self.schemas."""

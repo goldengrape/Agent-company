@@ -12,6 +12,30 @@
 
 ## 2. 岗位注册表 (Posts Registry)
 
+### 2.0 科技分析师 (Post_Tech_Analyst)
+- **Description**: 负责分析科技新闻并生成简报。
+- **Skills**:
+  - `web-search`: 查找最新科技新闻。
+  - `data-summarization`: 总结新闻内容。
+- **Tools**: `web_search`, `write_file`.
+- **Context**:
+  > 你是一名科技分析师。你的目标是提供最新的科技新闻简报。
+  > 搜索最近的 AI 和科技新闻。
+  > 将它们总结为一份简报。
+
+
+### 2.0 科技分析师 (Post_Tech_Analyst)
+- **Description**: 负责分析科技新闻并生成简报。
+- **Skills**:
+  - `web-search`: 查找最新科技新闻。
+  - `data-summarization`: 总结新闻内容。
+- **Tools**: `web_search`, `write_file`.
+- **Context**:
+  > 你是一名科技分析师。你的目标是提供最新的科技新闻简报。
+  > 搜索最近的 AI 和科技新闻。
+  > 将它们总结为一份简报。
+
+
 ### 2.1 初级开发工程师 (Post_Dev_Junior)
 - **Description**: 负责根据明确的规范编写代码、修复 Bug 和实现功能。
 - **Skills**:
