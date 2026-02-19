@@ -39,6 +39,7 @@ class CompanyManager:
             brave_api_key=self.config.tools.web.search.api_key or None,
             exec_config=self.config.tools.exec,
             restrict_to_workspace=self.config.tools.restrict_to_workspace,
+            company_name=self.company_name,
         )
         
         self.loader = CompanyConfigLoader(workspace, company_name)

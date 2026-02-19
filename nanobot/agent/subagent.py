@@ -45,6 +45,7 @@ class SubagentManager:
         brave_api_key: str | None = None,
         exec_config: "ExecToolConfig | None" = None,
         restrict_to_workspace: bool = False,
+        company_name: str | None = None,
     ):
         from nanobot.config.schema import ExecToolConfig
         self.provider = provider
@@ -56,10 +57,7 @@ class SubagentManager:
         self.brave_api_key = brave_api_key
         self.exec_config = exec_config or ExecToolConfig()
         self.restrict_to_workspace = restrict_to_workspace
-        self.company_loader = CompanyConfigLoader(workspace)
-        self.exec_config = exec_config or ExecToolConfig()
-        self.restrict_to_workspace = restrict_to_workspace
-        self.company_loader = CompanyConfigLoader(workspace)
+        self.company_loader = CompanyConfigLoader(workspace, company_name)
         # Note: ContextBuilder and SkillsLoader will be instantiated per-subagent 
         # to ensure isolation, or we pass specific agent_id to them.
         self.registry = WorkerRegistry(workspace)
