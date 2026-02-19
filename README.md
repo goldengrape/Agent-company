@@ -30,8 +30,6 @@ The system contains two core roles:
 ### 1. Manager
 - **Responsibilities**: Manage Worker lifecycle and task scheduling.
 - **Capabilities**: Dynamically spawn, reuse, or terminate Workers based on `POSTS.md`; parse workflows defined in `WORKFLOWS.md` and distribute tasks; conduct performance evaluations.
-  - **Example**: Create `workspace/tasks/ANY_NAME.md` (if using default post)
-  *(The Manager will automatically assign it to the default post)*
 
 ### 2. Worker
 - **Responsibilities**: Execute specific routine tasks.
@@ -69,14 +67,34 @@ nanobot company init --name <company_name>
 ```
 *(Note: This command will automatically create the `companies/<company_name>` directory and example configurations)*
 
-### 3. Define Posts and Workflows
+### 3. Define Capabilities
+
+Capabilities are extended through configuration, not code.
 
 1.  **Define Post**: Add job descriptions in `companies/<name>/POSTS.md`.
 2.  **Configure Dispatch**:
     -   **Option A (Simple)**: In `companies/<name>/SKILL.md`, set `default_post: <Post_ID>`. All tasks will go to this post.
     -   **Option B (Advanced)**: Create `companies/<name>/routes.json` to map file patterns to different posts.
 
-### 4. Run Company
+### 4. Delegate Tasks
+
+Create Markdown files in `workspace/tasks` to delegate tasks. The filename must match the pattern defined in `routes.json` (or any name if using `default_post`).
+
+**Example**: Create `workspace/tasks/TASK_NEWS_001.md`
+*(Matches route `TASK_NEWS_.*\.md` -> `Post_Tech_Analyst`)*
+
+**Example**: Create `workspace/tasks/ANY_NAME.md` (If using default post)
+*(Manager will automatically assign it to the default post)*
+
+```markdown
+# TASK: Daily Tech News
+**ID**: NEWS_001
+
+## Goal
+Search and summarize the top 3 AI news of the day.
+```
+
+### 5. Run Company
 
 ```bash
 nanobot company run --name <company_name>

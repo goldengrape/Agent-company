@@ -97,3 +97,41 @@ Nanobot Company 探索了一条不同于主流 "Multi-Agent Chat"（群聊模式
 我们不让 Agent 聚在一起“开会”（这往往导致上下文爆炸和话题跑偏），而是让他们像一家严谨的跨国公司一样，通过**传阅公文**来异步协作。
 
 这种模式牺牲了一定的实时性，但换来了极高的**稳定性、可维护性和可扩展性**，特别适合处理那些流程长、对结果确定性要求高的企业级任务。
+
+---
+
+---
+
+## 5. 抛砖引玉：为什么我们需要 Agent 公司？ (Project Origin)
+
+**"官僚制度是人类数千年文明的瑰宝之一。虽然反人性，但让 AI 来做很可能是非常好的。"**
+
+本项目（[https://github.com/goldengrape/Agent-company](https://github.com/goldengrape/Agent-company)）旨在抛砖引玉，展示如何基于 **nanobot** 建立一个个可控的、多 Agent 的“公司”结构，以完成写长篇小说等复杂任务。
+
+我在文章 **[《官僚体制与自主AI Agent》](https://quaily.com/goldengrape/p/bureaucratic-system-and-autonomous-ai-agent-building-a-controllable-machine-society)** 中详细阐述了其背后的思考。
+
+### 这种复杂的层级结构主要解决三个核心问题：
+
+#### 1. 解决 AI 的“亲亲相隐” (Avoiding Self-Delusion)
+当 PDCA (Plan-Do-Check-Act) 中的 Check（检查）环节放在同一个上下文（Conversation）中时，AI 很难检查出自己的错误。它倾向于将“计划中应当做的事”当作“已经做完的事”。
+- **解决方案**：引入公司架构，**手工切断上下文**。Check 必须由另一个独立的 Agent（如审计岗）在完全隔离的上下文中进行，只依据看到的公文（文档）做判断，从而避免“左手查右手”。
+
+#### 2. “遗忘”是一种功能 (Forgetting is a Feature)
+现有 RAG 等技术倾向于保存所有上下文（Recall all）。但对于复杂任务，**信息隔离**至关重要。
+- **解决方案**：Agent 之间不共享记忆。有些信息是有权限的，或者为了防止“信息短路”（Agent 偷懒利用已知信息跳过推导步骤），不应提前披露。
+- **实现**：Agent 仅通过公文获取上游提供的必要上下文，完成任务后撰写下游文档，然后销毁。这种“用完即走”的模式让“遗忘”成为了一种增强控制的手段。
+
+#### 3. 可追溯与可核验 (Traceability & Verifiability)
+复杂任务必须是可解释的。
+- **解决方案**：引入公司和公文体系后，复杂任务被物理分解为不同文件。每个阶段的产出都在 `workspace` 中留痕。
+- **优势**：我们可以随时回溯某个阶段的决策依据，甚至引入多个 Agent 对同一份公文进行交叉核查（Cross-Check）。
+
+---
+
+## 6. 致谢 (Acknowledgments)
+
+本项目基于 **nanobot** 框架及其设计理念构建。
+
+特别感谢 **nanobot** 提供的极简、灵活且强大的 Agent 核心运行时。正是得益于 nanobot 优秀的设计（如轻量级代码库、灵活的工具系统和多模型支持），我们才能专注于构建上层的“公司”逻辑，而无需从零去造 Agent 的轮子。
+
+
