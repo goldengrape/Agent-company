@@ -12,7 +12,7 @@ from nanobot.company.loader import Post
 @pytest.fixture
 def mock_workspace(tmp_path):
     # Setup workspace structure
-    (tmp_path / "memory").mkdir()
+    (tmp_path / "workspace" / "memory").mkdir(parents=True)
     (tmp_path / "company").mkdir()
     (tmp_path / "skills").mkdir()
     
@@ -26,16 +26,16 @@ def test_memory_store_isolation(mock_workspace):
     """Test that MemoryStore creates isolated paths when agent_id is provided."""
     # 1. Main Agent (no ID)
     main_memory = MemoryStore(mock_workspace)
-    assert main_memory.memory_dir == mock_workspace / "memory"
+    assert main_memory.memory_dir == mock_workspace / "workspace" / "memory"
     
     # 2. Worker Agent (with ID)
     worker_id = "worker_123"
     worker_memory = MemoryStore(mock_workspace, agent_id=worker_id)
-    assert worker_memory.memory_dir == mock_workspace / "memory" / "workers" / worker_id
+    assert worker_memory.memory_dir == mock_workspace / "workspace" / "memory" / "workers" / worker_id
     
     # Verify directories created
-    assert (mock_workspace / "memory").exists()
-    assert (mock_workspace / "memory" / "workers" / worker_id).exists()
+    assert (mock_workspace / "workspace" / "memory").exists()
+    assert (mock_workspace / "workspace" / "memory" / "workers" / worker_id).exists()
 
 def test_context_builder_identity_isolation(mock_workspace):
     """Test that ContextBuilder generates strict identity for Posts."""
@@ -71,7 +71,7 @@ def test_context_builder_memory_link(mock_workspace):
     builder = ContextBuilder(mock_workspace, agent_id=worker_id)
     
     # Verify internal memory store path
-    assert builder.memory.memory_dir == mock_workspace / "memory" / "workers" / worker_id
+    assert builder.memory.memory_dir == mock_workspace / "workspace" / "memory" / "workers" / worker_id
 
 @pytest.mark.asyncio
 async def test_subagent_manager_uses_isolation(mock_workspace):

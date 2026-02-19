@@ -28,7 +28,7 @@ def test_memory_log_event(workspace):
     memory = MemoryStore(workspace)
     memory.log_event("test_event", {"foo": "bar"})
     
-    events_file = workspace / "memory" / "EVENTS.jsonl"
+    events_file = workspace / "workspace" / "memory" / "EVENTS.jsonl"
     assert events_file.exists()
     
     lines = events_file.read_text(encoding="utf-8").strip().split("\n")
@@ -54,7 +54,7 @@ async def test_document_flow_logs_creation(workspace):
     assert "Document created successfully" in result
     
     # Check log
-    events_file = workspace / "memory" / "EVENTS.jsonl"
+    events_file = workspace / "workspace" / "memory" / "EVENTS.jsonl"
     assert events_file.exists()
     
     lines = events_file.read_text(encoding="utf-8").strip().split("\n")
@@ -76,7 +76,7 @@ async def test_document_flow_logs_submission(workspace):
     
     await tool.execute(action="submit", file_path=str(doc_path))
     
-    events_file = workspace / "memory" / "EVENTS.jsonl"
+    events_file = workspace / "workspace" / "memory" / "EVENTS.jsonl"
     assert events_file.exists()
     
     lines = events_file.read_text(encoding="utf-8").strip().split("\n")

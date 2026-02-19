@@ -247,8 +247,8 @@ Information about the user goes here.
             console.print(f"  [dim]Created {filename}[/dim]")
     
     # Create memory directory and MEMORY.md
-    memory_dir = workspace / "memory"
-    memory_dir.mkdir(exist_ok=True)
+    memory_dir = workspace / "workspace" / "memory"
+    memory_dir.mkdir(parents=True, exist_ok=True)
     memory_file = memory_dir / "MEMORY.md"
     if not memory_file.exists():
         memory_file.write_text("""# Long-term Memory

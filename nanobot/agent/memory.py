@@ -20,9 +20,9 @@ class MemoryStore:
                      workspace/memory/workers/{agent_id}/.
         """
         if agent_id:
-            self.memory_dir = ensure_dir(workspace / "memory" / "workers" / agent_id)
+            self.memory_dir = ensure_dir(workspace / "workspace" / "memory" / "workers" / agent_id)
         else:
-            self.memory_dir = ensure_dir(workspace / "memory")
+            self.memory_dir = ensure_dir(workspace / "workspace" / "memory")
             
         self.memory_file = self.memory_dir / "MEMORY.md"
         self.history_file = self.memory_dir / "HISTORY.md"

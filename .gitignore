@@ -216,7 +216,6 @@ __marimo__/
 config.json
 
 # Nanobot
-workspace/
 debug_output*.txt
 logs/
 verify_log*.txt
