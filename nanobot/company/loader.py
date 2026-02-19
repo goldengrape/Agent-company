@@ -19,12 +19,6 @@ class Schema:
     target_dir: str
     template: str
 
-@dataclass
-class Route:
-    pattern: str
-    post_id: str
-    context_template: str
-
 class CompanyConfigLoader:
     """Loads company configuration from markdown files."""
     
@@ -34,7 +28,6 @@ class CompanyConfigLoader:
         self.base_path = self._resolve_base_path()
         self.posts: Dict[str, Post] = {}
         self.schemas: Dict[str, Schema] = {}
-        self.routes: List[Route] = []
         self.default_post: str | None = None
         self.default_task_template: str | None = None
 
@@ -52,8 +45,7 @@ class CompanyConfigLoader:
         # 3. Fallback to legacy company/
         legacy_path = self.workspace / "company"
         return legacy_path
-        self.schemas: Dict[str, Schema] = {}
-        self.routes: List[Route] = []
+
         
     def load_all(self):
         """Load all configuration files."""
@@ -64,7 +56,6 @@ class CompanyConfigLoader:
             self._load_schemas()
             
         # self._load_workflows() # Placeholder
-        self._load_routes()
 
     def _load_from_skill_def(self) -> bool:
         """
@@ -76,16 +67,17 @@ class CompanyConfigLoader:
             return False
             
         try:
-            content = skill_file.read_text(encoding="utf-8")
-            # Extract frontmatter
-            match = re.search(r'^---\n(.*?)\n---', content, re.DOTALL)
-            if not match:
+            # Use yaml.safe_load_all to correctly parse frontmatter
+            # The first document in a YAML stream is typically the frontmatter
+            frontmatter = next(yaml.safe_load_all(skill_file.read_text(encoding="utf-8")), None)
+            
+            if not frontmatter:
                 return False
                 
-            data = yaml.safe_load(match.group(1))
-            components = data.get("components", {})
-            self.default_post = data.get("default_post")
-            self.default_task_template = data.get("default_task_template")
+            self.default_post = frontmatter.get("default_post")
+            self.default_task_template = frontmatter.get("default_task_template")
+            
+            components = frontmatter.get("components") or {}
             
             # Load components based on paths in SKILL.md
             # Note: paths in SKILL.md are relative to SKILL.md location (base_path)
@@ -114,23 +106,6 @@ class CompanyConfigLoader:
         content = posts_file.read_text(encoding="utf-8")
         self._parse_posts_content(content)
 
-    def _load_routes(self):
-        """Load routes from routes.json."""
-        import json
-        routes_file = self.base_path / "routes.json"
-        if not routes_file.exists():
-            return
-            
-        try:
-            data = json.loads(routes_file.read_text(encoding="utf-8"))
-            for route_data in data.get("routes", []):
-                self.routes.append(Route(
-                    pattern=route_data["pattern"],
-                    post_id=route_data["post_id"],
-                    context_template=route_data["context_template"]
-                ))
-        except Exception as e:
-            print(f"Error loading routes: {e}")
         
     def _load_schemas(self):
         """Parse DOCS_SCHEMA.md and populate self.schemas."""

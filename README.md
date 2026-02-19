@@ -47,7 +47,6 @@ The company's operations are defined by three core configuration files in the `c
 | **[`SKILL.md`](companies/default/SKILL.md)** | **Company Definition**: Entry point. Can define a `default_post` to handle all tasks automatically. | **Identity** |
 | **[`POSTS.md`](companies/default/POSTS.md)** | **Job Descriptions**: Define all posts, their responsibilities, required skills, and tool permissions. | **People** |
 | **[`WORKFLOWS.md`](companies/default/WORKFLOWS.md)** | **Workflow Management**: Define task flow logic and PDCA cycle requirements. | **Affairs** |
-| **[`routes.json`](companies/default/routes.json)** | **Routing Rules (Optional)**: Map specific file patterns to different posts. Not needed if `default_post` is set. | **Distribution** |
 | **[`DOCS_SCHEMA.md`](companies/default/DOCS_SCHEMA.md)** | **Document Schemas**: Define template formats for various documents. | **Objects** |
 
 ## 🚀 Quick Start
@@ -72,24 +71,18 @@ nanobot company init --name <company_name>
 Capabilities are extended through configuration, not code.
 
 1.  **Define Post**: Add job descriptions in `companies/<name>/POSTS.md`.
-2.  **Configure Dispatch**:
-    -   **Option A (Simple)**: In `companies/<name>/SKILL.md`, set `default_post: <Post_ID>`. All tasks will go to this post.
-    -   **Option B (Advanced)**: Create `companies/<name>/routes.json` to map file patterns to different posts.
+2.    -   **Configure Dispatch**: In `companies/<name>/SKILL.md`, set `default_post: <Post_ID>`. All tasks will go to this post.
 
 ### 4. Delegate Tasks
 
-Create Markdown files in `workspace/tasks` to delegate tasks. The filename must match the pattern defined in `routes.json` (or any name if using `default_post`).
+Create Markdown files in `workspace/tasks` to delegate tasks.
 
-**Example**: Create `workspace/tasks/TASK_NEWS_001.md`
-*(Matches route `TASK_NEWS_.*\.md` -> `Post_Tech_Analyst`)*
-
-**Example**: Create `workspace/tasks/ANY_NAME.md` (If using default post)
+**Example**: Create `workspace/tasks/ANY_NAME.md`
 *(Manager will automatically assign it to the default post)*
 
 ```markdown
 # TASK: Daily Tech News
 **ID**: NEWS_001
-
 ## Goal
 Search and summarize the top 3 AI news of the day.
 ```

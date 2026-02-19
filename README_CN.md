@@ -47,7 +47,6 @@
 | **[`SKILL.md`](companies/default/SKILL.md)** | **公司定义**: 入口文件。可定义 `default_post` 自动处理所有任务。 | **身份 (Identity)** |
 | **[`POSTS.md`](companies/default/POSTS.md)** | **岗位描述**：定义所有岗位及其职责、所需技能和工具权限。 | **人 (People)** |
 | **[`WORKFLOWS.md`](companies/default/WORKFLOWS.md)** | **流程管理**：定义任务的流转逻辑和 PDCA 循环要求。 | **事 (Affairs)** |
-| **[`routes.json`](companies/default/routes.json)** | **路由规则 (可选)**：将特定文件模式映射到不同岗位。若设置了 `default_post` 则不需要。 | **分发 (Distribution)** |
 | **[`DOCS_SCHEMA.md`](companies/default/DOCS_SCHEMA.md)** | **公文规范**：定义各类公文（任务书、报告、审计单）的模板格式。 | **物 (Documents)** |
 
 ## 🚀 快速开始
@@ -73,16 +72,13 @@ nanobot company init --name <company_name>
 公司通过配置而非代码来扩展能力。
 
 1.  **定义岗位**: 在 `companies/<name>/POSTS.md` 中添加岗位描述。
-2.  **配置分发**:
-    -   **方案 A (简单)**: 在 `companies/<name>/SKILL.md` 中增加 `default_post: <Post_ID>`。所有任务将自动分派给该岗位。
-    -   **方案 B (高级)**: 创建 `companies/<name>/routes.json` 将不同文件模式映射到不同岗位。
+2.  **配置分发**: 在 `companies/<name>/SKILL.md` 中增加 `default_post: <Post_ID>`。所有任务将自动分派给该岗位。
 
 ### 4. 委派任务 (Delegate Tasks)
 
-在 `workspace/tasks` 目录下创建 Markdown 文件委派任务。文件名必须匹配 `company/routes.json` 中定义的模式。
+在 `workspace/tasks` 目录下创建 Markdown 文件委派任务。
 
-**示例**: 创建 `workspace/tasks/TASK_NEWS_001.md`
-**示例**: 创建 `workspace/tasks/任意文件名.md` (如果使用了默认岗位)
+**示例**: 创建 `workspace/tasks/任意文件名.md`
 *(Manager 将自动将其分派给默认岗位)*
 
 ```markdown

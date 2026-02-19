@@ -97,19 +97,7 @@ class CompanyManager:
         content = task_file.read_text(encoding="utf-8")
         
         # Match task against routes
-        matched_route = None
-        for route in self.loader.routes:
-            if re.match(route.pattern, filename):
-                matched_route = route
-                break
-        
-        if matched_route:
-            post_id = matched_route.post_id
-            task_prompt = matched_route.context_template.format(
-                filename=filename,
-                content=content
-            )
-        elif self.loader.default_post:
+        if self.loader.default_post:
             post_id = self.loader.default_post
             template = self.loader.default_task_template or "Task File: {filename}\nContent:\n{content}"
             task_prompt = template.format(
@@ -118,7 +106,7 @@ class CompanyManager:
             )
             logger.info(f"Using default post {post_id} for {filename}")
         else:
-            logger.info(f"Skipping task {filename}: No matching route and no default post found.")
+            logger.info(f"Skipping task {filename}: No default post found.")
             return
         
         logger.info(f"Assigning {filename} to {post_id}...")

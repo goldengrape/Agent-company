@@ -72,11 +72,11 @@ Worker 不是常驻进程，而是**按需生成 (Spawn)** 的。
 
 ## 3. 关键实现机制 (Key Mechanics)
 
-### 3.1 零配置分发 (Zero-Conf Dispatch)
-为了简化单一用途公司的使用，我们实现了**默认岗位 (Default Post)** 逻辑。
-- **传统模式**：编写 `routes.json`，使用正则表达式匹配文件名（如 `TASK_WEATHER_.*`）来分发任务。
-- **简化模式**：在 `SKILL.md` 中设置 `default_post: Post_Weather_Analyst`。
-    - **效果**：所有丢入 `workspace/tasks/` 的文件，无论叫什么名字，统统交给这个默认岗位处理。这极大地降低了用户的使用门槛。
+### 3.1 极简分发 (Simplified Dispatch)
+为了简化使用，我们采用了**默认岗位 (Default Post)** 的分发逻辑。
+- 在 `SKILL.md` 中设置 `default_post: Post_Weather_Analyst`。
+- **效果**：所有丢入 `workspace/tasks/` 的文件，无论叫什么名字，统统交给这个默认岗位处理。
+- *注：代码中仍保留了基于 `routes.json` 正则匹配的逻辑以支持复杂场景，但默认情况下不再需要。*
 
 ### 3.2 技能加载器 (Company Loader)
 `CompanyConfigLoader` 是连接静态 Markdown 配置与动态 Python 代码的桥梁。
