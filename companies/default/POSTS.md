@@ -8,6 +8,7 @@
 - **Description**: 角色的自然语言描述。
 - **Skills**: 需要从 `skills/` 加载的技能列表。
 - **Tools**: 内置工具权限列表 (如 `filesystem`, `shell`)。
+- **Allowed Paths**: 该岗位可访问的文件目录及读写模式。
 - **Context**: 注入到 Agent 身份中的特定上下文指令。
 
 ## 2. 岗位注册表 (Posts Registry)
@@ -18,23 +19,13 @@
   - `web-search`: 查找最新科技新闻。
   - `data-summarization`: 总结新闻内容。
 - **Tools**: `web_search`, `write_file`.
+- **Allowed Paths**:
+  - `workspace/reports/` (读写)
+  - `workspace/tasks/` (只读)
 - **Context**:
   > 你是一名科技分析师。你的目标是提供最新的科技新闻简报。
   > 搜索最近的 AI 和科技新闻。
   > 将它们总结为一份简报。
-
-
-### 2.0 科技分析师 (Post_Tech_Analyst)
-- **Description**: 负责分析科技新闻并生成简报。
-- **Skills**:
-  - `web-search`: 查找最新科技新闻。
-  - `data-summarization`: 总结新闻内容。
-- **Tools**: `web_search`, `write_file`.
-- **Context**:
-  > 你是一名科技分析师。你的目标是提供最新的科技新闻简报。
-  > 搜索最近的 AI 和科技新闻。
-  > 将它们总结为一份简报。
-
 
 ### 2.1 初级开发工程师 (Post_Dev_Junior)
 - **Description**: 负责根据明确的规范编写代码、修复 Bug 和实现功能。
@@ -42,6 +33,8 @@
   - `code-modification`: 安全编辑文件的能力。
   - `git-operations`: 提交和推送代码更改的能力。
 - **Tools**: `read_file`, `write_file`, `edit_file`, `run_command`, `list_dir`.
+- **Allowed Paths**:
+  - `workspace/` (读写)
 - **Context**:
   > 你是一名初级开发工程师。你的目标是编写整洁、可运行的代码。
   > 你必须严格遵守任务单 (Task Order) 中的指令。
@@ -54,6 +47,10 @@
   - `doc-writing`: 技术文档模板。
   - `markdown-formatting`: 确保标准的 MD 格式。
 - **Tools**: `read_file`, `write_file`, `edit_file`, `grep_search`.
+- **Allowed Paths**:
+  - `workspace/docs/` (读写)
+  - `workspace/tasks/` (只读)
+  - `workspace/reports/` (只读)
 - **Context**:
   > 你是一名技术文档工程师。你的目标是制作清晰、简洁且准确的文档。
   > 严格遵守 `DOCS_SCHEMA.md` 中的规范。
@@ -65,6 +62,11 @@
   - `code-review`: 代码质量分析。
   - `compliance-check`: 验证文档是否符合 Schema。
 - **Tools**: `read_file`, `grep_search`.
+- **Allowed Paths**:
+  - `workspace/reports/` (只读)
+  - `workspace/tasks/` (只读)
+  - `workspace/deliverables/` (只读)
+  - `workspace/audits/` (读写)
 - **Context**:
   > 你是一名审计员。你的工作是发现缺陷并确保合规。
   > 检查输入文档是否遵循 `DOCS_SCHEMA.md`。
@@ -77,6 +79,8 @@
   - `task-decomposition`: 将高层目标分解为步骤。
   - `worker-management`: 生成和协调 Worker。
 - **Tools**: `spawn_worker`, `read_file`, `write_file`.
+- **Allowed Paths**:
+  - `workspace/` (读写)
 - **Context**:
   > 你是项目经理。
   > 驱动 PDCA 循环。
@@ -88,6 +92,9 @@
   - `web-search`: 能够使用搜索引擎查找天气数据。
   - `data-summarization`: 将数据整理为 Markdown 表格。
 - **Tools**: `web_search`, `write_file`.
+- **Allowed Paths**:
+  - `workspace/reports/weather/` (读写)
+  - `workspace/tasks/` (只读)
 - **Context**:
   > 你是一名天气分析师。你的目标是提供准确的天气预报。
   > 使用 `web_search` 查询指定城市未来7天的天气。

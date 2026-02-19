@@ -11,6 +11,8 @@ class Post:
     skills: List[str] = field(default_factory=list)
     tools: List[str] = field(default_factory=list)
     context_prompt: str = ""
+    allowed_paths: List[Dict[str, str]] = field(default_factory=list)
+    # 每项格式: {"path": "workspace/reports/", "mode": "rw"} 或 {"path": "workspace/tasks/", "mode": "r"}
 
 @dataclass
 class Schema:
@@ -213,6 +215,7 @@ class CompanyConfigLoader:
             skills = []
             tools = []
             context_lines = []
+            allowed_paths = []
             
             current_mode = None
             
@@ -232,6 +235,8 @@ class CompanyConfigLoader:
                     # Extract contents of backticks
                     tools = re.findall(r'`([^`]+)`', tools_str)
                     current_mode = "tools"
+                elif line.startswith("- **Allowed Paths**:"):
+                    current_mode = "allowed_paths"
                 elif line.startswith("- **Context**:"):
                     current_mode = "context"
                 
@@ -240,6 +245,21 @@ class CompanyConfigLoader:
                     skill_match = re.search(r'-\s+`([^`]+)`', line)
                     if skill_match:
                         skills.append(skill_match.group(1))
+
+                elif current_mode == "allowed_paths":
+                    # Parse: "  - `workspace/reports/` (读写)" or "  - `workspace/tasks/` (只读)"
+                    path_match = re.search(r'-\s+`([^`]+)`\s*\(([^)]+)\)', line)
+                    if path_match:
+                        raw_path = path_match.group(1)
+                        raw_mode = path_match.group(2).strip()
+                        # 支持中文和英文模式标记
+                        if raw_mode in ('读写', 'rw', 'read-write'):
+                            mode = 'rw'
+                        elif raw_mode in ('只读', 'r', 'read-only', 'readonly'):
+                            mode = 'r'
+                        else:
+                            mode = 'r'  # 默认只读
+                        allowed_paths.append({"path": raw_path, "mode": mode})
                         
                 elif current_mode == "context":
                     # Parse blockquotes: "> Context line"
@@ -251,5 +271,6 @@ class CompanyConfigLoader:
                 description=description,
                 skills=skills,
                 tools=tools,
-                context_prompt="\n".join(context_lines)
+                context_prompt="\n".join(context_lines),
+                allowed_paths=allowed_paths
             )

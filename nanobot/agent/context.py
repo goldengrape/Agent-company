@@ -49,6 +49,9 @@ class ContextBuilder:
         # Helper to generate runtime info
         runtime_info = self._get_runtime_info()
 
+        # Build file permission block from allowed_paths
+        permission_block = self._build_permission_block(post.allowed_paths)
+
         # Isolate Identity: If Post is defined, use ONLY Post info + Runtime info.
         # Do NOT prepend the generic "You are nanobot" base identity.
         
@@ -60,13 +63,31 @@ class ContextBuilder:
 {post.context_prompt}
 
 {runtime_info}
-
+{permission_block}
 ## Organization
 - You are a worker agent in the Nanobot Company.
 - You must strictly follow your role and existing protocols.
 - Do not hallucinate capabilities you do not have.
 """
         return post_identity
+    
+    def _build_permission_block(self, allowed_paths: list[dict[str, str]]) -> str:
+        """Build file access permission block for system prompt."""
+        if not allowed_paths:
+            return ""
+        
+        mode_labels = {"rw": "读写 (read-write)", "r": "只读 (read-only)"}
+        paths_info = "\n".join(
+            f"  - `{p['path']}` — {mode_labels.get(p['mode'], '只读 (read-only)')}"
+            for p in allowed_paths
+        )
+        return f"""
+## 文件访问权限 (File Access Permissions)
+你只能访问以下目录中的文件，严禁访问其他路径：
+{paths_info}
+
+> **重要**：违反文件访问权限规则属于严重违规行为，等同于越权操作。
+"""
     
     def build_system_prompt(self, skill_names: list[str] | None = None) -> str:
         """
