@@ -44,7 +44,13 @@ Company Factory 是一个**元公司** (Meta-Company)：它本身是一个 Agent
 
 ## Usage
 ```bash
-
-# 运行元公司（传入新公司需求）
+# 运行元公司（从 workspace/tasks 读取任务）
 nanobot company run --name company_factory
+
+# 传入新公司需求描述运行
+nanobot company run --name company_factory --task "创建一个数据分析公司，要求包含数据采集、清洗和可视化岗位"
+
+# 通过文件传入需求
+nanobot company run --name company_factory --task ./new_company_requirements.md
 ```
+

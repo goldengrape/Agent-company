@@ -95,6 +95,10 @@ nanobot company init --name <company_name>
 nanobot company run --name <company_name>
 # 或运行默认公司
 nanobot company run
+# 或直接传入任务字符串
+nanobot company run --name <company_name> --task "你的任务描述"
+# 或指定任务文件
+nanobot company run --name <company_name> --task ./path/to/task.md
 ```
 
 Manager 将自动启动，监控 `workspace/tasks`，根据文件名将任务分发给对应的 Agent，并生成报告到 `workspace/reports`。

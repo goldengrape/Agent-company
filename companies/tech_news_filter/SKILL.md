@@ -42,9 +42,13 @@ Tech News Filter 是一个底层技术情报分析公司。其核心使命是从
 
 ## Usage
 ```bash
-# 加载公司配置
-nanobot company load --name tech_news_filter
-
-# 运行每日新闻筛选
+# 运行每日新闻筛选（从 workspace/tasks 读取任务）
 nanobot company run --name tech_news_filter
+
+# 指定任务文件运行
+nanobot company run --name tech_news_filter --task ./my_task.md
+
+# 传入任务字符串运行
+nanobot company run --name tech_news_filter --task "筛选今日AI领域新闻"
 ```
+

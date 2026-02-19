@@ -13,7 +13,7 @@
 | FR2：专业任务执行 (执行具体常规任务) | DP2：员工模块 (Worker) | AgentLoop, SkillsLoader & Posts.md |
 | FR3：流程控制与审计 (PDCA 逻辑与公文流转) | DP3：公文流引擎 (Document Flow) | filesystem 工具组, CronService & Workflows.md |
 | FR4：知识持久化 (存储事实与执行日志) | DP4：独立记忆层 (Isolated Memory Instances) | MemoryStore (Per Agent), SessionManager & Docs.md |
-| FR5：公司定义封装 (多实例支持) | DP5：公司技能包 (Company Skill) | Loader, SKILL.md & companies/ |
+| FR5：公司定义封装 (多实例支持与灵活任务输入) | DP5：公司技能包 (Company Skill) + CLI 任务输入层 | Loader, SKILL.md & companies/, CLI --task |
 
 ## 3. 设计矩阵 (Design Matrix)
 

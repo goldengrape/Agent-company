@@ -69,14 +69,33 @@ components:
 @company_app.command("run")
 def company_run(
     name: str = typer.Option(None, "--name", "-n", help="Name of the company to run"),
+    task: str = typer.Option(None, "--task", "-t", help="Task string or path to a task file (.md/.txt)"),
 ):
-    """Run the company manager to process tasks."""
+    """Run the company manager to process tasks.
+
+    By default, scans workspace/tasks for TASK_*.md files.
+    Use --task to provide a task directly:
+      --task "your task description"
+      --task ./path/to/task_file.md
+    """
     console.print(f"{__logo__} Starting Nanobot Company Manager ({name or 'default'})...")
-    
+
+    # Resolve task input: file path → read content, otherwise use as string
+    task_input = None
+    if task:
+        from pathlib import Path as _Path
+        task_path = _Path(task)
+        if task_path.exists() and task_path.is_file():
+            task_input = task_path.read_text(encoding="utf-8")
+            console.print(f"  [dim]Task loaded from file: {task_path}[/dim]")
+        else:
+            task_input = task
+            console.print(f"  [dim]Task provided as string[/dim]")
+
     config = load_config()
     workspace = config.workspace_path
-    manager = CompanyManager(workspace, company_name=name)
-    
+    manager = CompanyManager(workspace, company_name=name, task_input=task_input)
+
     try:
         asyncio.run(manager.run())
     except KeyboardInterrupt:

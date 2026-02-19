@@ -63,6 +63,11 @@
   - 系统支持通过 CLI (`nanobot company run --name <name>`) 启动不同的公司实例。
   - 公司配置存储在 `companies/<company_name>/` 目录下。
 
+- **灵活的任务输入方式**:
+  - **目录扫描（默认）**：自动扫描 `workspace/tasks/` 中的 `TASK_*.md` 文件。
+  - **文件路径**：通过 `--task ./path/to/file.md` 指定任务文件。
+  - **字符串**：通过 `--task "任务描述"` 直接传入任务内容。
+
 ## 4. 运行机制：公文流控制
 - **传递媒介**：所有的工作指令、进度报告、审查意见均以“公文”（Markdown 文件）形式存储在 `workspace` 的特定目录中。
 - **触发方式**：Agent 需监控特定目录或通过 `HeartbeatService` 定期轮询 `HEARTBEAT.md` 中的“公文待处理”任务。

@@ -93,6 +93,10 @@ Search and summarize the top 3 AI news of the day.
 nanobot company run --name <company_name>
 # or run default
 nanobot company run
+# or provide a task directly
+nanobot company run --name <company_name> --task "your task description"
+# or provide a task file
+nanobot company run --name <company_name> --task ./path/to/task.md
 ```
 
 The Manager will automatically start, monitor task applications in `workspace`, and schedule Workers based on the configuration.

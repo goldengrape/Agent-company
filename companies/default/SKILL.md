@@ -40,8 +40,14 @@ Defines the "Things" (Processes).
 - State Transitions
 
 ## Usage
-To load this company configuration:
-`nanobot company load ./company`
+```bash
+# 运行默认公司（从 workspace/tasks 读取任务）
+nanobot company run
 
-To run the company loop:
-`nanobot company run`
+# 指定任务文件运行
+nanobot company run --task ./my_task.md
+
+# 传入任务字符串运行
+nanobot company run --task "你的任务描述"
+```
+

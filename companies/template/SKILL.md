@@ -42,9 +42,13 @@ components:
 
 ## Usage
 ```bash
-# 加载公司配置
-nanobot company load --name <company_name>
-
-# 运行公司循环
+# 运行公司（从 workspace/tasks 读取任务）
 nanobot company run --name <company_name>
+
+# 指定任务文件运行
+nanobot company run --name <company_name> --task ./my_task.md
+
+# 传入任务字符串运行
+nanobot company run --name <company_name> --task "你的任务描述"
 ```
+

@@ -22,9 +22,10 @@ class CompanyManager:
     - Monitors progress.
     """
 
-    def __init__(self, workspace: Path, company_name: str | None = None):
+    def __init__(self, workspace: Path, company_name: str | None = None, task_input: str | None = None):
         self.workspace = workspace
         self.company_name = company_name
+        self.task_input = task_input
         self.config = load_config()
         self.bus = MessageBus() # We might need a shared bus if we want to listen to events
         self.provider = self._make_provider(self.config)
@@ -69,29 +70,58 @@ class CompanyManager:
     async def run(self):
         """
         Main loop for the company manager.
-        For now, this is a one-shot scan and execute.
+        If task_input is provided, process it directly.
+        Otherwise, scan workspace/tasks for TASK_*.md files.
         """
         logger.info(f"Company Manager started. Company: {self.company_name or 'Default'}")
         self.loader.load_all()
-        
-        # 1. Scan for tasks
-        tasks_dir = self.workspace / "workspace" / "tasks"
-        if not tasks_dir.exists():
-            logger.warning(f"Tasks directory not found: {tasks_dir}")
-            return
 
-        task_files = list(tasks_dir.glob("TASK_*.md"))
-        logger.info(f"Found {len(task_files)} task files.")
+        # If task_input is provided via CLI --task, process it directly
+        if self.task_input:
+            logger.info("Processing task from CLI --task input.")
+            await self._process_direct_task(self.task_input)
+        else:
+            # Scan for tasks in workspace/tasks
+            tasks_dir = self.workspace / "workspace" / "tasks"
+            if not tasks_dir.exists():
+                logger.warning(f"Tasks directory not found: {tasks_dir}")
+                return
 
-        for task_file in task_files:
-            await self._process_task_file(task_file)
+            task_files = list(tasks_dir.glob("TASK_*.md"))
+            logger.info(f"Found {len(task_files)} task files.")
 
-        # 2. Wait for background tasks to complete
+            for task_file in task_files:
+                await self._process_task_file(task_file)
+
+        # Wait for background tasks to complete
         while self.subagent_manager.get_running_count() > 0:
             logger.info(f"Waiting for {self.subagent_manager.get_running_count()} workers to complete...")
             await asyncio.sleep(2)
         
         logger.info("All tasks completed.")
+
+    async def _process_direct_task(self, content: str):
+        """Process a task provided directly via CLI --task argument."""
+        if not self.loader.default_post:
+            logger.warning("No default post configured. Cannot process direct task input.")
+            return
+
+        post_id = self.loader.default_post
+        template = self.loader.default_task_template or "Task:\n{content}"
+        task_prompt = template.format(
+            filename="CLI_INPUT",
+            content=content,
+            task=content,
+        )
+        logger.info(f"Assigning CLI task to {post_id}...")
+
+        response = await self.subagent_manager.spawn_worker(
+            post_id=post_id,
+            task=task_prompt,
+            monitor_channel="cli",
+            monitor_chat_id="direct"
+        )
+        logger.info(f"Spawn result: {response}")
 
     async def _process_task_file(self, task_file: Path):
         filename = task_file.name

@@ -27,6 +27,10 @@
     docs_schema: "./DOCS_SCHEMA.md"
   skills_dir: "./skills"
   ```
+- **CLI 任务输入**:
+  - 通过 `nanobot company run --task <string_or_file>` 直接传入任务内容。
+  - 优先级：`--task` 参数 > `workspace/tasks/` 目录扫描。
+  - 若 `--task` 值为已存在的 `.md`/`.txt` 文件路径，则读取文件内容作为任务；否则视为字符串。
 
 ## 2. 任务执行模块 (Task Execution Worker)
 - **核心组件**：`AgentLoop`、`SkillsLoader`。
