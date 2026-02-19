@@ -21,14 +21,19 @@
 - **员工招聘 (Spawn)**: 调用 `SubagentManager` 创建并启动 Worker 实例。
 - **进度监控**: 跟踪活跃 Worker 的状态，直到所有任务完成。
 
-**任务分配逻辑 (当前版本示例):**
-- 文件名包含 `WEATHER` -> 分配给 `Post_Weather_Analyst`
+**任务分配逻辑:**
+1.  **路由优先**: 检查 `routes.json` (如果存在)，匹配文件名正则。
+2.  **默认回退**: 如果没有匹配路由，检查 `SKILL.md` 中的 `default_post`。
+3.  **丢弃**: 如果两者皆无，则忽略该文件。
 
 ### 2. Company Config Loader (`loader.py`)
 
 负责从 Markdown 文件中解析公司的组织架构定义。这也体现了 "Configuration as Code" 和 "Prompt Engineering" 的结合。
 
 #### 支持的配置文件：
+
+- **`companies/<name>/SKILL.md`**: 公司定义入口。
+    - 支持字段: `default_post`, `default_task_template`。
 
 - **`company/POSTS.md`**: 定义职位列表。
     - 解析逻辑：查找三级标题 `###` 作为职位定义，提取描述、技能列表、工具列表和上下文 Prompt。
@@ -60,3 +65,20 @@
 - **Context**:
   > 你是专业的气象分析师...
 ```
+## 简化配置 (Simplified Configuration)
+
+对于大多数专精型公司（如“天气预报公司”），可以直接在 `SKILL.md` 中指定默认岗位，从而免去编写 `routes.json`。
+
+**示例 `SKILL.md`**:
+```yaml
+name: Weather Co
+default_post: Post_Weather_Analyst
+default_task_template: |
+  请处理以下天气任务:
+  文件名: {filename}
+  内容: {content}
+components:
+  posts: "./POSTS.md"
+```
+
+启用后，所有放入 `workspace/tasks` 的文件都会自动由 `Post_Weather_Analyst` 处理。

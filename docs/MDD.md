@@ -19,6 +19,8 @@
   ```yaml
   name: "Company Name"
   description: "..."
+  default_post: "Post_ID"       # 可选：默认处理岗位
+  default_task_template: "..."  # 可选：默认任务提示词模板
   components:
     posts: "./POSTS.md"
     workflows: "./WORKFLOWS.md"

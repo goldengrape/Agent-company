@@ -30,6 +30,8 @@ The system contains two core roles:
 ### 1. Manager
 - **Responsibilities**: Manage Worker lifecycle and task scheduling.
 - **Capabilities**: Dynamically spawn, reuse, or terminate Workers based on `POSTS.md`; parse workflows defined in `WORKFLOWS.md` and distribute tasks; conduct performance evaluations.
+  - **Example**: Create `workspace/tasks/ANY_NAME.md` (if using default post)
+  *(The Manager will automatically assign it to the default post)*
 
 ### 2. Worker
 - **Responsibilities**: Execute specific routine tasks.
@@ -44,9 +46,11 @@ The company's operations are defined by three core configuration files in the `c
 
 | Document | Description | Concept |
 | :--- | :--- | :--- |
-| **[`POSTS.md`](company/POSTS.md)** | **Job Descriptions**: Define all posts, their responsibilities, required skills, and tool permissions. | **People** |
-| **[`WORKFLOWS.md`](company/WORKFLOWS.md)** | **Workflow Management**: Define task flow logic and PDCA cycle requirements. | **Affairs** |
-| **[`DOCS_SCHEMA.md`](company/DOCS_SCHEMA.md)** | **Document Schemas**: Define template formats for various documents (Task Orders, Reports, Audit Sheets). | **Objects** |
+| **[`SKILL.md`](companies/default/SKILL.md)** | **Company Definition**: Entry point. Can define a `default_post` to handle all tasks automatically. | **Identity** |
+| **[`POSTS.md`](companies/default/POSTS.md)** | **Job Descriptions**: Define all posts, their responsibilities, required skills, and tool permissions. | **People** |
+| **[`WORKFLOWS.md`](companies/default/WORKFLOWS.md)** | **Workflow Management**: Define task flow logic and PDCA cycle requirements. | **Affairs** |
+| **[`routes.json`](companies/default/routes.json)** | **Routing Rules (Optional)**: Map specific file patterns to different posts. Not needed if `default_post` is set. | **Distribution** |
+| **[`DOCS_SCHEMA.md`](companies/default/DOCS_SCHEMA.md)** | **Document Schemas**: Define template formats for various documents. | **Objects** |
 
 ## 🚀 Quick Start
 
@@ -61,14 +65,16 @@ uv tool install nanobot-ai
 ### 2. Initialize Company
 
 ```bash
-```bash
 nanobot company init --name <company_name>
 ```
 *(Note: This command will automatically create the `companies/<company_name>` directory and example configurations)*
 
 ### 3. Define Posts and Workflows
 
-Edit `company/POSTS.md` to add your first employee (e.g., "Technical Writer"), and define their workflow in `company/WORKFLOWS.md`.
+1.  **Define Post**: Add job descriptions in `companies/<name>/POSTS.md`.
+2.  **Configure Dispatch**:
+    -   **Option A (Simple)**: In `companies/<name>/SKILL.md`, set `default_post: <Post_ID>`. All tasks will go to this post.
+    -   **Option B (Advanced)**: Create `companies/<name>/routes.json` to map file patterns to different posts.
 
 ### 4. Run Company
 
