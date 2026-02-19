@@ -40,7 +40,7 @@ The system contains two core roles:
 
 ## 📄 Company Architecture Documents
 
-The company's operations are defined by three core configuration files in the `company/` directory:
+The company's operations are defined by three core configuration files in the `companies/<name>/` directory:
 
 | Document | Description | Concept |
 | :--- | :--- | :--- |
@@ -61,9 +61,10 @@ uv tool install nanobot-ai
 ### 2. Initialize Company
 
 ```bash
-nanobot company init
+```bash
+nanobot company init --name <company_name>
 ```
-*(Note: This command will automatically create the `company` directory and example configurations)*
+*(Note: This command will automatically create the `companies/<company_name>` directory and example configurations)*
 
 ### 3. Define Posts and Workflows
 
@@ -72,6 +73,8 @@ Edit `company/POSTS.md` to add your first employee (e.g., "Technical Writer"), a
 ### 4. Run Company
 
 ```bash
+nanobot company run --name <company_name>
+# or run default
 nanobot company run
 ```
 

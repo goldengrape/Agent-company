@@ -40,7 +40,7 @@
 
 ## 📄 公司架构文档
 
-公司的运作由 `company/` 目录下的三个核心配置文件定义：
+公司的运作由 `companies/<name>/` 目录下的三个核心配置文件定义：
 
 | 文档 | 说明 | 对应概念 |
 | :--- | :--- | :--- |
@@ -61,9 +61,10 @@ uv tool install nanobot-ai
 ### 2. 初始化公司
 
 ```bash
-nanobot company init
+```bash
+nanobot company init --name <company_name>
 ```
-*(注：此命令将自动创建 `company` 目录及示例配置)*
+*(注：此命令将自动创建 `companies/<company_name>` 目录及示例配置)*
 
 ### 3. 定义能力 (Capabilities)
 
@@ -90,6 +91,8 @@ nanobot company init
 ### 5. 启动公司 (Run Company)
 
 ```bash
+nanobot company run --name <company_name>
+# 或运行默认公司
 nanobot company run
 ```
 

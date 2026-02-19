@@ -35,6 +35,8 @@ class CompanyConfigLoader:
         self.posts: Dict[str, Post] = {}
         self.schemas: Dict[str, Schema] = {}
         self.routes: List[Route] = []
+        self.default_post: str | None = None
+        self.default_task_template: str | None = None
 
     def _resolve_base_path(self) -> Path:
         """Resolve the base path for company configuration."""
@@ -82,6 +84,8 @@ class CompanyConfigLoader:
                 
             data = yaml.safe_load(match.group(1))
             components = data.get("components", {})
+            self.default_post = data.get("default_post")
+            self.default_task_template = data.get("default_task_template")
             
             # Load components based on paths in SKILL.md
             # Note: paths in SKILL.md are relative to SKILL.md location (base_path)

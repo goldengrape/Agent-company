@@ -9,9 +9,10 @@
   - Manager 负责在 Worker 启动时注入特定的“公文处理上下文”。
 
 ## 1.1 公司技能加载器 (Company Skill Loader)
-- **输入**: `company/SKILL.md`
+- **输入**: `companies/<name>/SKILL.md` (或 `companies/default/SKILL.md`)
 - **功能**:
   - 验证 Company Skill 的完整性 (Posts, Workflows, Docs)。
+  - 支持通过 CLI 参数 `--name` 加载指定公司配置。
   - 解析 `POSTS.md` 并注册到 SubagentManager。
   - 解析 `WORKFLOWS.md` 并初始化 Cron 任务 (如果需要)。
 - **Schema (SKILL.md)**:

@@ -17,7 +17,8 @@ class WorkerState:
 class WorkerRegistry:
     def __init__(self, workspace: Path):
         self.workspace = workspace
-        self.registry_file = workspace / "company" / "workers.json"
+        # Move to workspace/agent_resource (HR department)
+        self.registry_file = workspace / "workspace" / "agent_resource" / "workers.json"
         self._workers: Dict[str, WorkerState] = {}
         self._load()
     

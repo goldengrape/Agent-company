@@ -103,20 +103,23 @@ class CompanyManager:
                 matched_route = route
                 break
         
-        if not matched_route:
-            logger.info(f"Skipping task {filename}: No matching route found.")
+        if matched_route:
+            post_id = matched_route.post_id
+            task_prompt = matched_route.context_template.format(
+                filename=filename,
+                content=content
+            )
+        elif self.loader.default_post:
+            post_id = self.loader.default_post
+            template = self.loader.default_task_template or "Task File: {filename}\nContent:\n{content}"
+            task_prompt = template.format(
+                filename=filename,
+                content=content
+            )
+            logger.info(f"Using default post {post_id} for {filename}")
+        else:
+            logger.info(f"Skipping task {filename}: No matching route and no default post found.")
             return
-
-        post_id = matched_route.post_id
-
-
-        # Check if already assigned (simple check)
-        # TODO: Implement proper state tracking for tasks
-        
-        task_prompt = matched_route.context_template.format(
-            filename=filename,
-            content=content
-        )
         
         logger.info(f"Assigning {filename} to {post_id}...")
         

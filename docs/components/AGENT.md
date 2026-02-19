@@ -110,5 +110,5 @@ sequenceDiagram
 
 一个简单的数据持久化层，用于跟踪所有活跃和历史 Worker (Subagent) 的状态。
 
-- **存储位置**: `company/workers.json`
+- **存储位置**: `workspace/agent_resource/workers.json`
 - **记录字段**: Worker ID, Post ID (职位), 状态 (active/completed/failed), 当前任务, 创建/更新时间。

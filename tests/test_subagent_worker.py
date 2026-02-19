@@ -83,7 +83,9 @@ async def test_spawn_worker(mock_workspace):
     
     # Verify Registry Update
     import json
-    registry_file = mock_workspace / "company" / "workers.json"
+    # Verify Registry Update
+    import json
+    registry_file = mock_workspace / "workspace" / "agent_resource" / "workers.json"
     assert registry_file.exists()
     
     data = json.loads(registry_file.read_text(encoding="utf-8"))
