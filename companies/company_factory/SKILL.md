@@ -44,8 +44,6 @@ Company Factory 是一个**元公司** (Meta-Company)：它本身是一个 Agent
 
 ## Usage
 ```bash
-# 加载元公司
-nanobot company load --name company_factory
 
 # 运行元公司（传入新公司需求）
 nanobot company run --name company_factory

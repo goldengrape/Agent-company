@@ -6,8 +6,8 @@ behavior:
   - "情报筛选官执行多层过滤逻辑，剔除噪音"
   - "情报合成员撰写学术化每日报告"
   - "审计员验证报告质量和过滤准确性"
-default_post: "Post_RSS_Collector"
-default_task_template: "请执行每日新闻采集与筛选任务。\n\n任务文件: {filename}\n\n任务内容:\n{content}"
+default_post: "Post_News_Analyst"
+default_task_template: "请执行每日新闻采集、筛选与报告生成任务。你必须将最终报告以Markdown格式写入 workspace/reports/ 目录。\n\n任务文件: {filename}\n\n任务内容:\n{content}"
 components:
   posts: "./POSTS.md"
   workflows: "./WORKFLOWS.md"
