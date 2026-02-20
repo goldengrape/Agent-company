@@ -134,7 +134,7 @@
 - **Skills**:
   - `task-decomposition`: 将"创建新公司"的高层目标分解为步骤。
   - `worker-management`: 生成和协调各岗位 Worker。
-- **Tools**: `spawn_worker`, `read_file`, `write_file`.
+- **Tools**: `spawn_worker`, `wait_for_tasks`, `read_file`, `write_file`.
 - **Allowed Paths**:
   - `workspace/` (读写)
 - **Context**:

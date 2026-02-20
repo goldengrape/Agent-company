@@ -22,6 +22,7 @@ from nanobot.agent.skills import SkillsLoader
 from nanobot.agent.worker_registry import WorkerRegistry
 from nanobot.agent.tools.document_flow import DocumentFlowTool
 from nanobot.agent.tools.spawn_worker import SpawnWorkerTool
+from nanobot.agent.tools.wait_for_tasks import WaitForTasksTool
 from nanobot.agent.memory import MemoryStore
 from datetime import datetime
 
@@ -47,6 +48,7 @@ class SubagentManager:
         exec_config: "ExecToolConfig | None" = None,
         restrict_to_workspace: bool = False,
         company_name: str | None = None,
+        company_path: str | None = None,
     ):
         from nanobot.config.schema import ExecToolConfig
         self.provider = provider
@@ -58,7 +60,7 @@ class SubagentManager:
         self.brave_api_key = brave_api_key
         self.exec_config = exec_config or ExecToolConfig()
         self.restrict_to_workspace = restrict_to_workspace
-        self.company_loader = CompanyConfigLoader(workspace, company_name)
+        self.company_loader = CompanyConfigLoader(workspace, company_name, company_path=company_path)
         # Note: ContextBuilder and SkillsLoader will be instantiated per-subagent 
         # to ensure isolation, or we pass specific agent_id to them.
         self.registry = WorkerRegistry(workspace)
@@ -146,6 +148,49 @@ class SubagentManager:
             origin_chat_id=monitor_chat_id,
             post_id=post_id
         )
+
+    async def wait_for_tasks(self, task_ids: list[str], timeout_seconds: int = 300) -> str:
+        """
+        Wait for a list of spawned subagents to complete and collect their results.
+        
+        Args:
+            task_ids: List of task IDs mapping to currently running async background tasks.
+            timeout_seconds: Maximum time to wait.
+            
+        Returns:
+            A formatted string containing the completion status and final results of all tasks.
+        """
+        import asyncio
+        from loguru import logger
+        
+        pending_tasks = []
+        for tid in task_ids:
+            if tid in self._running_tasks:
+                pending_tasks.append(self._running_tasks[tid])
+                
+        if not pending_tasks:
+            # All tasks might have completed very fast, or IDs are invalid
+            pass
+        else:
+            logger.info(f"Waiting for {len(pending_tasks)} sub-tasks to complete (Timeout: {timeout_seconds}s)")
+            try:
+                await asyncio.wait(pending_tasks, timeout=timeout_seconds, return_when=asyncio.ALL_COMPLETED)
+            except Exception as e:
+                logger.warning(f"Error while waiting for sub-tasks: {e}")
+                
+        # Aggregate results from the registry
+        lines = [f"=== Sub-Tasks Execution Summary ({len(task_ids)} tasks) ==="]
+        for tid in task_ids:
+            worker = self.registry.get(tid)
+            if not worker:
+                lines.append(f"Task ID: {tid}\nStatus: not_found\nResult: task_record_missing")
+            else:
+                lines.append(f"Task ID: {tid}")
+                lines.append(f"Post/Role: {worker.post_id}")
+                lines.append(f"Status: {worker.status or 'unknown'}")
+                lines.append(f"Result Preview: {worker.result or '(no result generated)'}\n")
+                
+        return "\n".join(lines)
     
     async def _run_subagent(
         self,
@@ -338,6 +383,7 @@ Summarize this naturally for the user. Keep it brief (1-2 sentences). Do not men
             "web_fetch": lambda: WebFetchTool(),
             "document_flow": lambda: DocumentFlowTool(self.workspace),
             "spawn_worker": lambda: SpawnWorkerTool(self),
+            "wait_for_tasks": lambda: WaitForTasksTool(self),
         }
         
         # 1. Start with empty list
