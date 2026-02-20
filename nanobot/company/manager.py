@@ -9,10 +9,9 @@ from nanobot.agent.subagent import SubagentManager
 from nanobot.agent.worker_registry import WorkerRegistry
 from nanobot.company.loader import CompanyConfigLoader
 from nanobot.config.loader import load_config
-from nanobot.bus.queue import MessageBus
-from nanobot.config.loader import load_config
-from nanobot.bus.queue import MessageBus
 from nanobot.config.schema import Config
+from nanobot.agent.memory import MemoryStore
+from nanobot.bus.queue import MessageBus
 
 class CompanyManager:
     """
@@ -124,6 +123,9 @@ class CompanyManager:
         # Collect and output results
         self._output_results()
 
+        # Cleanup worker records and memory
+        self._cleanup_workers()
+
     def _output_results(self):
         """Collect results from all spawned workers and output them."""
         if not self._spawned_task_ids:
@@ -152,6 +154,21 @@ class CompanyManager:
         # Print output directory info
         output_dir = self._resolve_output_dir()
         print(f"\n📁 Output directory: {output_dir}")
+
+    def _cleanup_workers(self):
+        """Cleanup worker registry and memory for spawned tasks."""
+        if not self._spawned_task_ids:
+            return
+
+        logger.info(f"Cleaning up {len(self._spawned_task_ids)} workers...")
+        for task_id in self._spawned_task_ids:
+            # Unregister from workers.json
+            self.registry.unregister(task_id)
+            # Clear worker-specific memory directory
+            memory = MemoryStore(self.workspace, agent_id=task_id)
+            memory.clear()
+        
+        logger.info("Cleanup completed.")
 
     async def _process_direct_task(self, content: str):
         """Process a task provided directly via CLI --task argument."""

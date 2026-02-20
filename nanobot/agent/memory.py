@@ -54,3 +54,13 @@ class MemoryStore:
         }
         with open(self.events_file, "a", encoding="utf-8") as f:
             f.write(json.dumps(event, ensure_ascii=False) + "\n")
+
+    def clear(self) -> None:
+        """Completely remove the memory directory for this agent."""
+        if self.memory_dir.exists():
+            import shutil
+            try:
+                shutil.rmtree(self.memory_dir)
+            except Exception as e:
+                from loguru import logger
+                logger.warning(f"Failed to clear memory directory {self.memory_dir}: {e}")

@@ -47,6 +47,12 @@ class WorkerRegistry:
     def get(self, worker_id: str) -> Optional[WorkerState]:
         return self._workers.get(worker_id)
         
+    def unregister(self, worker_id: str) -> None:
+        """Remove a worker from the registry."""
+        if worker_id in self._workers:
+            del self._workers[worker_id]
+            self._save()
+        
     def _save(self):
         # Ensure directory exists
         if not self.registry_file.parent.exists():
