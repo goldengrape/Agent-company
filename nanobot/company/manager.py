@@ -22,10 +22,11 @@ class CompanyManager:
     - Monitors progress.
     """
 
-    def __init__(self, workspace: Path, company_name: str | None = None, task_input: str | None = None):
+    def __init__(self, workspace: Path, company_name: str | None = None, task_input: str | None = None, company_path: str | None = None):
         self.workspace = workspace
         self.company_name = company_name
         self.task_input = task_input
+        self.company_path = company_path
         self.config = load_config()
         self.bus = MessageBus() # We might need a shared bus if we want to listen to events
         self.provider = self._make_provider(self.config)
@@ -43,7 +44,7 @@ class CompanyManager:
             company_name=self.company_name,
         )
         
-        self.loader = CompanyConfigLoader(workspace, company_name)
+        self.loader = CompanyConfigLoader(workspace, company_name, company_path=company_path)
         self.registry = WorkerRegistry(workspace)
 
     def _make_provider(self, config: Config):

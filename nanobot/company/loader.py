@@ -24,9 +24,10 @@ class Schema:
 class CompanyConfigLoader:
     """Loads company configuration from markdown files."""
     
-    def __init__(self, workspace_path: Path, company_name: str | None = None):
+    def __init__(self, workspace_path: Path, company_name: str | None = None, company_path: str | None = None):
         self.workspace = workspace_path
         self.company_name = company_name
+        self.company_path = company_path
         self.base_path = self._resolve_base_path()
         self.posts: Dict[str, Post] = {}
         self.schemas: Dict[str, Schema] = {}
@@ -35,6 +36,10 @@ class CompanyConfigLoader:
 
     def _resolve_base_path(self) -> Path:
         """Resolve the base path for company configuration."""
+        # 0. Explicit path provided (e.g. private company directory)
+        if self.company_path:
+            return Path(self.company_path)
+
         # 1. Explicit name provided
         if self.company_name:
             return self.workspace / "companies" / self.company_name

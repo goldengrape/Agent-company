@@ -220,3 +220,6 @@ debug_output*.txt
 logs/
 verify_log*.txt
 test_output.txt
+
+# Private companies
+private_companies/

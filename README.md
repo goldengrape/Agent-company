@@ -97,6 +97,8 @@ nanobot company run
 nanobot company run --name <company_name> --task "your task description"
 # or provide a task file
 nanobot company run --name <company_name> --task ./path/to/task.md
+# or load from a custom company directory (private_companies/ is gitignored)
+nanobot company run --path ./private_companies/my_company
 ```
 
 The Manager will automatically start, monitor task applications in `workspace`, and schedule Workers based on the configuration.

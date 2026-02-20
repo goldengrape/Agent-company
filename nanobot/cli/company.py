@@ -70,6 +70,7 @@ components:
 def company_run(
     name: str = typer.Option(None, "--name", "-n", help="Name of the company to run"),
     task: str = typer.Option(None, "--task", "-t", help="Task string or path to a task file (.md/.txt)"),
+    path: str = typer.Option(None, "--path", "-p", help="Path to a company config directory (overrides --name)"),
 ):
     """Run the company manager to process tasks.
 
@@ -77,8 +78,11 @@ def company_run(
     Use --task to provide a task directly:
       --task "your task description"
       --task ./path/to/task_file.md
+    Use --path for private company directories:
+      --path ./private_companies/my_company
     """
-    console.print(f"{__logo__} Starting Nanobot Company Manager ({name or 'default'})...")
+    label = path or name or 'default'
+    console.print(f"{__logo__} Starting Nanobot Company Manager ({label})...")
 
     # Resolve task input: file path → read content, otherwise use as string
     task_input = None
@@ -94,7 +98,7 @@ def company_run(
 
     config = load_config()
     workspace = config.workspace_path
-    manager = CompanyManager(workspace, company_name=name, task_input=task_input)
+    manager = CompanyManager(workspace, company_name=name, task_input=task_input, company_path=path)
 
     try:
         asyncio.run(manager.run())

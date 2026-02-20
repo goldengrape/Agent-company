@@ -99,6 +99,8 @@ nanobot company run
 nanobot company run --name <company_name> --task "你的任务描述"
 # 或指定任务文件
 nanobot company run --name <company_name> --task ./path/to/task.md
+# 或从自定义路径加载公司配置（private_companies/ 已被 .gitignore 排除）
+nanobot company run --path ./private_companies/my_company
 ```
 
 Manager 将自动启动，监控 `workspace/tasks`，根据文件名将任务分发给对应的 Agent，并生成报告到 `workspace/reports`。

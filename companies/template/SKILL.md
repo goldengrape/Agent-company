@@ -50,5 +50,8 @@ nanobot company run --name <company_name> --task ./my_task.md
 
 # 传入任务字符串运行
 nanobot company run --name <company_name> --task "你的任务描述"
+
+# 从自定义路径加载公司配置（private_companies/ 已被 .gitignore 排除）
+nanobot company run --path ./private_companies/my_company
 ```
 

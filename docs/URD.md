@@ -68,6 +68,11 @@
   - **文件路径**：通过 `--task ./path/to/file.md` 指定任务文件。
   - **字符串**：通过 `--task "任务描述"` 直接传入任务内容。
 
+- **自定义公司路径**:
+  - 通过 `--path ./private_companies/my_company` 加载任意目录下的公司配置。
+  - 适用于私有公司目录、git ignore 的配置等场景。`--path` 优先级高于 `--name`。
+  - 项目约定将私有公司存放在 `private_companies/` 目录下，该目录已被 `.gitignore` 排除。
+
 ## 4. 运行机制：公文流控制
 - **传递媒介**：所有的工作指令、进度报告、审查意见均以“公文”（Markdown 文件）形式存储在 `workspace` 的特定目录中。
 - **触发方式**：Agent 需监控特定目录或通过 `HeartbeatService` 定期轮询 `HEARTBEAT.md` 中的“公文待处理”任务。
