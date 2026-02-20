@@ -71,6 +71,7 @@ def company_run(
     name: str = typer.Option(None, "--name", "-n", help="Name of the company to run"),
     task: str = typer.Option(None, "--task", "-t", help="Task string or path to a task file (.md/.txt)"),
     path: str = typer.Option(None, "--path", "-p", help="Path to a company config directory (overrides --name)"),
+    output: str = typer.Option(None, "--output", "-o", help="Directory path to save the output files"),
 ):
     """Run the company manager to process tasks.
 
@@ -80,6 +81,8 @@ def company_run(
       --task ./path/to/task_file.md
     Use --path for private company directories:
       --path ./private_companies/my_company
+    Use --output to specify the output directory:
+      --output ./my_company_output
     """
     label = path or name or 'default'
     console.print(f"{__logo__} Starting Nanobot Company Manager ({label})...")
@@ -96,9 +99,17 @@ def company_run(
             task_input = task
             console.print(f"  [dim]Task provided as string[/dim]")
 
+    # Resolve output path
+    output_path = None
+    if output:
+        from pathlib import Path as _Path
+        output_path = _Path(output).resolve()
+        output_path.mkdir(parents=True, exist_ok=True)
+        console.print(f"  [dim]Output directory: {output_path}[/dim]")
+
     config = load_config()
     workspace = config.workspace_path
-    manager = CompanyManager(workspace, company_name=name, task_input=task_input, company_path=path)
+    manager = CompanyManager(workspace, company_name=name, task_input=task_input, company_path=path, output_path=output_path)
 
     try:
         asyncio.run(manager.run())

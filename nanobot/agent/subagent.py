@@ -21,6 +21,7 @@ from nanobot.agent.skills import SkillsLoader
 from nanobot.agent.skills import SkillsLoader
 from nanobot.agent.worker_registry import WorkerRegistry
 from nanobot.agent.tools.document_flow import DocumentFlowTool
+from nanobot.agent.tools.spawn_worker import SpawnWorkerTool
 from nanobot.agent.memory import MemoryStore
 from datetime import datetime
 
@@ -196,7 +197,7 @@ class SubagentManager:
             ]
             
             # Run agent loop (limited iterations)
-            max_iterations = 15
+            max_iterations = 30
             iteration = 0
             final_result: str | None = None
             
@@ -315,6 +316,7 @@ Summarize this naturally for the user. Keep it brief (1-2 sentences). Do not men
             "web_search": lambda: WebSearchTool(api_key=self.brave_api_key),
             "web_fetch": lambda: WebFetchTool(),
             "document_flow": lambda: DocumentFlowTool(self.workspace),
+            "spawn_worker": lambda: SpawnWorkerTool(self),
         }
         
         # 1. Start with empty list

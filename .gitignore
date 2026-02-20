@@ -220,6 +220,7 @@ debug_output*.txt
 logs/
 verify_log*.txt
 test_output.txt
+workspace/memory/*
 
 # Private companies
 private_companies/

@@ -6,8 +6,8 @@ behavior:
   - "需求分析师将自然语言需求转化为结构化需求规格"
   - "架构师和工程师分工设计岗位、公文、流程"
   - "审计员确保所有配置文件内部一致且符合框架规范"
-default_post: "Post_Company_Architect"
-default_task_template: "请根据以下需求设计一个新的Agent公司: {task}"
+default_post: "Post_Manager_Factory"
+default_task_template: "请按照 WORKFLOWS.md 中定义的'新公司创建流程'，协调各岗位完成以下新公司创建任务:\n\n{task}\n\n所有产出文件请写入目录：{output_dir}"
 components:
   posts: "./POSTS.md"
   workflows: "./WORKFLOWS.md"

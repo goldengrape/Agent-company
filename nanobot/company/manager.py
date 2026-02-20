@@ -22,14 +22,18 @@ class CompanyManager:
     - Monitors progress.
     """
 
-    def __init__(self, workspace: Path, company_name: str | None = None, task_input: str | None = None, company_path: str | None = None):
+    def __init__(self, workspace: Path, company_name: str | None = None, task_input: str | None = None, company_path: str | None = None, output_path: Path | None = None):
         self.workspace = workspace
         self.company_name = company_name
         self.task_input = task_input
         self.company_path = company_path
+        self.output_path = output_path
         self.config = load_config()
         self.bus = MessageBus() # We might need a shared bus if we want to listen to events
         self.provider = self._make_provider(self.config)
+        
+        # Track spawned task IDs to collect results later
+        self._spawned_task_ids: List[str] = []
         
         self.subagent_manager = SubagentManager(
             provider=self.provider,
@@ -68,6 +72,20 @@ class CompanyManager:
             provider_name=provider_name,
         )
 
+    def _resolve_output_dir(self) -> str:
+        """Resolve the output directory path string for template injection."""
+        if self.output_path:
+            return str(self.output_path)
+        # Default: workspace/deliverables/
+        default_dir = self.workspace / "workspace" / "deliverables"
+        default_dir.mkdir(parents=True, exist_ok=True)
+        return str(default_dir)
+
+    def _extract_task_id_from_response(self, response: str) -> str | None:
+        """Extract task_id from spawn response string like 'Subagent [...] started (id: abc12345)'."""
+        match = re.search(r'\(id:\s*([a-f0-9]+)\)', response)
+        return match.group(1) if match else None
+
     async def run(self):
         """
         Main loop for the company manager.
@@ -101,6 +119,38 @@ class CompanyManager:
         
         logger.info("All tasks completed.")
 
+        # Collect and output results
+        self._output_results()
+
+    def _output_results(self):
+        """Collect results from all spawned workers and output them."""
+        if not self._spawned_task_ids:
+            return
+
+        # Reload registry to get latest results
+        self.registry = WorkerRegistry(self.workspace)
+
+        results_parts: List[str] = []
+        for task_id in self._spawned_task_ids:
+            worker = self.registry.get(task_id)
+            if worker and worker.result:
+                results_parts.append(worker.result)
+            else:
+                results_parts.append(f"[Worker {task_id}]: No result available (status: {worker.status if worker else 'unknown'})")
+
+        combined_result = "\n\n---\n\n".join(results_parts)
+
+        # Always print to console
+        print("\n" + "=" * 60)
+        print("📋 Company Run Results")
+        print("=" * 60)
+        print(combined_result)
+        print("=" * 60)
+
+        # Print output directory info
+        output_dir = self._resolve_output_dir()
+        print(f"\n📁 Output directory: {output_dir}")
+
     async def _process_direct_task(self, content: str):
         """Process a task provided directly via CLI --task argument."""
         if not self.loader.default_post:
@@ -108,11 +158,13 @@ class CompanyManager:
             return
 
         post_id = self.loader.default_post
+        output_dir = self._resolve_output_dir()
         template = self.loader.default_task_template or "Task:\n{content}"
         task_prompt = template.format(
             filename="CLI_INPUT",
             content=content,
             task=content,
+            output_dir=output_dir,
         )
         logger.info(f"Assigning CLI task to {post_id}...")
 
@@ -124,6 +176,11 @@ class CompanyManager:
         )
         logger.info(f"Spawn result: {response}")
 
+        # Track task_id for result collection
+        task_id = self._extract_task_id_from_response(response)
+        if task_id:
+            self._spawned_task_ids.append(task_id)
+
     async def _process_task_file(self, task_file: Path):
         filename = task_file.name
         content = task_file.read_text(encoding="utf-8")
@@ -131,10 +188,12 @@ class CompanyManager:
         # Match task against routes
         if self.loader.default_post:
             post_id = self.loader.default_post
+            output_dir = self._resolve_output_dir()
             template = self.loader.default_task_template or "Task File: {filename}\nContent:\n{content}"
             task_prompt = template.format(
                 filename=filename,
-                content=content
+                content=content,
+                output_dir=output_dir,
             )
             logger.info(f"Using default post {post_id} for {filename}")
         else:
@@ -150,3 +209,8 @@ class CompanyManager:
             monitor_chat_id="direct"
         )
         logger.info(f"Spawn result: {response}")
+
+        # Track task_id for result collection
+        task_id = self._extract_task_id_from_response(response)
+        if task_id:
+            self._spawned_task_ids.append(task_id)
