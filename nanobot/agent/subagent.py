@@ -63,6 +63,7 @@ class SubagentManager:
         # to ensure isolation, or we pass specific agent_id to them.
         self.registry = WorkerRegistry(workspace)
         self._running_tasks: dict[str, asyncio.Task[None]] = {}
+        self.output_dir: str | None = None  # Set by CompanyManager to propagate to all workers
     
     async def spawn(
         self,
@@ -133,7 +134,11 @@ class SubagentManager:
             
         post = self.company_loader.posts[post_id]
         label = f"{post.title}: {task[:20]}..."
-        
+
+        # Auto-inject output_dir into task so sub-workers know where to write
+        if self.output_dir:
+            task = f"{task}\n\n[系统指令] 所有产出文件必须写入目录：{self.output_dir}"
+
         return await self.spawn(
             task=task,
             label=label,
@@ -300,14 +305,30 @@ Summarize this naturally for the user. Keep it brief (1-2 sentences). Do not men
     def _register_tools(self, registry: ToolRegistry, post: "Post | None") -> None:
         """Register tools for the subagent, optionally filtering by Post definition."""
         allowed_dir = self.workspace if self.restrict_to_workspace else None
-        
+
+        # Build allowed_paths for this post, including output_dir if set
+        post_allowed_paths = []
+        if post and post.allowed_paths:
+            post_allowed_paths = list(post.allowed_paths)
+        # Auto-add output_dir as rw path so workers can always write output
+        if self.output_dir:
+            post_allowed_paths.append({"path": self.output_dir, "mode": "rw"})
+
         # Available tools map
         # Note: We create new instances for each subagent to ensure thread safety / config isolation if needed
         all_tools = {
-            "read_file": lambda: ReadFileTool(allowed_dir=allowed_dir),
-            "write_file": lambda: WriteFileTool(allowed_dir=allowed_dir),
-            "edit_file": lambda: EditFileTool(allowed_dir=allowed_dir),
-            "list_dir": lambda: ListDirTool(allowed_dir=allowed_dir),
+            "read_file": lambda: ReadFileTool(allowed_dir=allowed_dir,
+                                              allowed_paths=post_allowed_paths,
+                                              workspace=self.workspace),
+            "write_file": lambda: WriteFileTool(allowed_dir=allowed_dir,
+                                                allowed_paths=post_allowed_paths,
+                                                workspace=self.workspace),
+            "edit_file": lambda: EditFileTool(allowed_dir=allowed_dir,
+                                              allowed_paths=post_allowed_paths,
+                                              workspace=self.workspace),
+            "list_dir": lambda: ListDirTool(allowed_dir=allowed_dir,
+                                            allowed_paths=post_allowed_paths,
+                                            workspace=self.workspace),
             "exec": lambda: ExecTool(
                 working_dir=str(self.workspace),
                 timeout=self.exec_config.timeout,

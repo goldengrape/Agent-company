@@ -47,6 +47,8 @@ class CompanyManager:
             restrict_to_workspace=self.config.tools.restrict_to_workspace,
             company_name=self.company_name,
         )
+        # Propagate output_dir to SubagentManager so all sub-workers receive it
+        self.subagent_manager.output_dir = self._resolve_output_dir()
         
         self.loader = CompanyConfigLoader(workspace, company_name, company_path=company_path)
         self.registry = WorkerRegistry(workspace)
