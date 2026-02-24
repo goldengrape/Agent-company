@@ -7,7 +7,7 @@
 - **Title**: 岗位的唯一标识符，格式为 `Post_<Name>`。
 - **Description**: 角色的自然语言描述。
 - **Skills**: 需要从 `skills/` 加载的技能列表。
-- **Tools**: 内置工具权限列表。可选值: `read_file`, `write_file`, `edit_file`, `list_dir`, `exec`, `web_search`, `web_fetch`, `document_flow`, `spawn_worker`。
+- **Tools**: 内置工具权限列表。可选值: `read_file`, `write_file`, `edit_file`, `list_dir`, `exec`, `web_search`, `web_fetch`, `document_flow`, `list_posts`, `spawn_worker`, `wait_for_tasks`。
 - **Allowed Paths**: 该岗位可访问的文件目录及读写模式。格式: `` `路径` (读写|只读) ``。
 - **Context**: 注入到 Agent 身份中的特定上下文指令，使用引用块 (`>`) 书写。
 
@@ -151,13 +151,15 @@
 - **Skills**:
   - `task-decomposition`: 将每日新闻处理分解为采集、筛选、合成三步。
   - `worker-management`: 生成和协调各岗位 Worker。
-- **Tools**: `spawn_worker`, `read_file`, `write_file`.
+- **Tools**: `list_posts`, `spawn_worker`, `wait_for_tasks`, `read_file`, `write_file`.
 - **Allowed Paths**:
   - `workspace/` (读写)
 - **Context**:
   > 你是 Tech News Filter 的运营经理。
   > 你负责驱动每日新闻筛选的 PDCA 循环。
   > 按照 WORKFLOWS.md 中定义的"每日新闻筛选流程"执行。
+  > 委派前先调用 `list_posts` 校验岗位 ID；每个阶段完成后调用 `wait_for_tasks` 再进入下一阶段。
+  > 禁止在失败后重复相同参数的工具调用，必须先修正任务描述。
   > 严格按顺序调度：RSS采集翻译员 → 首席情报筛选官 → 情报合成员 → 质量审计员。
   > 每个阶段的输出是下一个阶段的输入。
   > 最终报告存放在 `workspace/reports/` 目录下。

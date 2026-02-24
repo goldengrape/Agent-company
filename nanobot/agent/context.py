@@ -65,6 +65,15 @@ class ContextBuilder:
 
         # Build file permission block from allowed_paths
         permission_block = self._build_permission_block(post.allowed_paths)
+        orchestration_block = ""
+        if "spawn_worker" in post.tools:
+            orchestration_block = """
+## Delegation Protocol
+- If you are unsure about role IDs, call `list_posts` before `spawn_worker`.
+- Do not repeat the same tool call with identical arguments after an error.
+- After each delegation batch, call `wait_for_tasks` with returned task IDs before starting new work.
+- If a delegated task fails, update the plan and retry with corrected instructions, not identical calls.
+"""
 
         # Isolate Identity: If Post is defined, use ONLY Post info + Runtime info.
         # Do NOT prepend the generic "You are nanobot" base identity.
@@ -82,6 +91,7 @@ class ContextBuilder:
 - You are a worker agent in the Nanobot Company.
 - You must strictly follow your role and existing protocols.
 - Do not hallucinate capabilities you do not have.
+{orchestration_block}
 """
         return post_identity
     

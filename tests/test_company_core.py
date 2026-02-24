@@ -234,3 +234,33 @@ def test_post_dataclass_with_allowed_paths():
     assert post.allowed_paths[0]["mode"] == "rw"
     assert post.allowed_paths[1]["path"] == "workspace/config/"
 
+
+@pytest.fixture
+def mock_workspace_manager_role(tmp_path):
+    posts = """# 岗位描述文档
+
+## 2. 岗位注册表 (Posts Registry)
+
+### 2.0 项目经理 (Post_Manager_Project)
+- **Description**: 负责分配任务。
+- **Skills**:
+  - `task-decomposition`
+- **Tools**: `list_posts`, `spawn_worker`, `wait_for_tasks`.
+- **Context**:
+  > 你是项目经理。
+"""
+    company_dir = tmp_path / "company"
+    company_dir.mkdir()
+    (company_dir / "POSTS.md").write_text(posts, encoding="utf-8")
+    (company_dir / "WORKFLOWS.md").write_text("# wf", encoding="utf-8")
+    (company_dir / "DOCS_SCHEMA.md").write_text("# schema", encoding="utf-8")
+    return tmp_path
+
+
+def test_context_builder_adds_delegation_protocol(mock_workspace_manager_role):
+    builder = ContextBuilder(mock_workspace_manager_role)
+    identity = builder.get_agent_identity("Post_Manager_Project")
+    assert "Delegation Protocol" in identity
+    assert "list_posts" in identity
+    assert "wait_for_tasks" in identity
+

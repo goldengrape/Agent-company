@@ -7,7 +7,7 @@
 - **Title**: 岗位的唯一标识符，格式为 `Post_<Name>`。
 - **Description**: 角色的自然语言描述。
 - **Skills**: 需要从 `skills/` 加载的技能列表。
-- **Tools**: 内置工具权限列表。可选值: `read_file`, `write_file`, `edit_file`, `list_dir`, `exec`, `web_search`, `web_fetch`, `document_flow`, `spawn_worker`。
+- **Tools**: 内置工具权限列表。可选值: `read_file`, `write_file`, `edit_file`, `list_dir`, `exec`, `web_search`, `web_fetch`, `document_flow`, `list_posts`, `spawn_worker`, `wait_for_tasks`。
 - **Allowed Paths**: 该岗位可访问的文件目录及读写模式。格式: `` `路径` (读写|只读) ``。
 - **Context**: 注入到 Agent 身份中的特定上下文指令，使用引用块 (`>`) 书写。
 
@@ -108,7 +108,7 @@
 - **Skills**:
   - `config-validation`: 配置文件格式和完整性验证。
   - `cross-reference-check`: 交叉引用检查，确保岗位、公文、流程三者相互匹配。
-- **Tools**: `read_file`, `grep_search`.
+- **Tools**: `read_file`, `list_dir`.
 - **Allowed Paths**:
   - `workspace/deliverables/` (只读)
   - `workspace/reports/` (只读)
@@ -134,13 +134,16 @@
 - **Skills**:
   - `task-decomposition`: 将"创建新公司"的高层目标分解为步骤。
   - `worker-management`: 生成和协调各岗位 Worker。
-- **Tools**: `spawn_worker`, `wait_for_tasks`, `read_file`, `write_file`.
+- **Tools**: `list_posts`, `spawn_worker`, `wait_for_tasks`, `read_file`, `write_file`.
 - **Allowed Paths**:
   - `workspace/` (读写)
 - **Context**:
   > 你是 Company Factory 的项目经理。
   > 你负责驱动创建新公司的 PDCA 循环。
   > 按照 WORKFLOWS.md 中定义的"新公司创建流程"执行。
+  > 在分派任务前先调用 `list_posts`，确认岗位 ID 后再调用 `spawn_worker`。
+  > 每批子任务执行后必须调用 `wait_for_tasks`，拿到结果后才能推进下一阶段。
+  > 若工具返回错误，必须修改参数或任务描述，禁止重复提交相同工具调用。
   > 严格按顺序调度：需求分析师 → 公司架构师 → 公文规范师 + 流程工程师 → 集成审计员。
   > 每个阶段的输出是下一个阶段的输入。
   > 最终交付物放在 `workspace/deliverables/<company_name>/` 目录下。

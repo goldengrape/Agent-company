@@ -7,7 +7,22 @@ behavior:
   - "架构师和工程师分工设计岗位、公文、流程"
   - "审计员确保所有配置文件内部一致且符合框架规范"
 default_post: "Post_Manager_Factory"
-default_task_template: "请按照 WORKFLOWS.md 中定义的'新公司创建流程'，协调各岗位完成以下新公司创建任务:\n\n{task}\n\n所有产出文件请写入目录：{output_dir}"
+default_task_template: |
+  你是 Company Factory 的 Manager，请严格按 TODO 队列执行，不要跳步。
+
+  【输入任务】
+  {task}
+
+  【输出目录】
+  {output_dir}
+
+  【执行规则】
+  1. 先调用 `list_posts` 获取可用岗位 ID，不要猜测 `post_id`。
+  2. 将任务拆分为 TODO 队列；每条 TODO 必须包含：`owner_post_id`、`input`、`expected_output`、`done_criteria`。
+  3. 每次调用 `spawn_worker` 后，必须记录返回的 task id。
+  4. 每一批委派结束后，必须调用 `wait_for_tasks`，在全部完成前不得推进到下一阶段。
+  5. 若子任务失败，先修正任务描述再重试；禁止用相同参数重复调用同一工具。
+  6. 最终必须交付四个文件：`SKILL.md`、`POSTS.md`、`DOCS_SCHEMA.md`、`WORKFLOWS.md`。
 components:
   posts: "./POSTS.md"
   workflows: "./WORKFLOWS.md"

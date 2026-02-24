@@ -22,6 +22,7 @@ from nanobot.agent.worker_registry import WorkerRegistry
 from nanobot.agent.tools.document_flow import DocumentFlowTool
 from nanobot.agent.tools.spawn_worker import SpawnWorkerTool
 from nanobot.agent.tools.wait_for_tasks import WaitForTasksTool
+from nanobot.agent.tools.list_posts import ListPostsTool
 from nanobot.agent.memory import MemoryStore
 from datetime import datetime
 
@@ -133,7 +134,12 @@ class SubagentManager:
         """
         self.company_loader.load_all()
         if post_id not in self.company_loader.posts:
-            return f"Error: Post '{post_id}' not found in company configuration."
+            available_posts = ", ".join(sorted(self.company_loader.posts.keys())) or "(none)"
+            return (
+                f"Error: Post '{post_id}' not found in company configuration. "
+                f"Available posts: [{available_posts}]. "
+                "Call list_posts first and use one of the returned IDs."
+            )
             
         post = self.company_loader.posts[post_id]
         label = f"{post.title}: {task[:20]}..."
@@ -259,6 +265,9 @@ class SubagentManager:
             max_iterations = 30
             iteration = 0
             final_result: str | None = None
+            max_same_tool_calls = 3
+            last_tool_signature: tuple[str, str] | None = None
+            same_tool_repeat_count = 0
             
             while iteration < max_iterations:
                 iteration += 1
@@ -291,7 +300,45 @@ class SubagentManager:
                     })
                     
                     # Execute tools
+                    should_stop_loop = False
                     for tool_call in response.tool_calls:
+                        try:
+                            args_signature = json.dumps(
+                                tool_call.arguments, sort_keys=True, ensure_ascii=False
+                            )
+                        except TypeError:
+                            args_signature = str(tool_call.arguments)
+
+                        current_signature = (tool_call.name, args_signature)
+                        if current_signature == last_tool_signature:
+                            same_tool_repeat_count += 1
+                        else:
+                            last_tool_signature = current_signature
+                            same_tool_repeat_count = 1
+
+                        if same_tool_repeat_count > max_same_tool_calls:
+                            loop_guard_msg = (
+                                "Error: Repeated identical tool call blocked to prevent an infinite loop. "
+                                f"Tool '{tool_call.name}' was called with the same arguments "
+                                f"more than {max_same_tool_calls} times."
+                            )
+                            logger.warning(
+                                f"Subagent [{task_id}] loop guard triggered for "
+                                f"{tool_call.name} with args: {args_signature}"
+                            )
+                            messages.append({
+                                "role": "tool",
+                                "tool_call_id": tool_call.id,
+                                "name": tool_call.name,
+                                "content": loop_guard_msg,
+                            })
+                            final_result = (
+                                "Task stopped to prevent an infinite tool loop. "
+                                f"Repeated call: {tool_call.name}."
+                            )
+                            should_stop_loop = True
+                            break
+
                         args_str = json.dumps(tool_call.arguments)
                         logger.debug(f"Subagent [{task_id}] executing: {tool_call.name} with arguments: {args_str}")
                         result = await tools.execute(tool_call.name, tool_call.arguments)
@@ -301,6 +348,8 @@ class SubagentManager:
                             "name": tool_call.name,
                             "content": result,
                         })
+                    if should_stop_loop:
+                        break
                 else:
                     final_result = response.content
                     break
@@ -395,6 +444,7 @@ Summarize this naturally for the user. Keep it brief (1-2 sentences). Do not men
                 company_name=self.company_name,
                 company_path=self.company_path,
             ),
+            "list_posts": lambda: ListPostsTool(self),
             "spawn_worker": lambda: SpawnWorkerTool(self),
             "wait_for_tasks": lambda: WaitForTasksTool(self),
         }

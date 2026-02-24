@@ -7,7 +7,7 @@
 - **Title**: 岗位的唯一标识符。
 - **Description**: 角色的自然语言描述。
 - **Skills**: 需要从 `skills/` 加载的技能列表。
-- **Tools**: 内置工具权限列表 (如 `filesystem`, `shell`)。
+- **Tools**: 内置工具权限列表。可选值: `read_file`, `write_file`, `edit_file`, `list_dir`, `exec`, `web_search`, `web_fetch`, `document_flow`, `list_posts`, `spawn_worker`, `wait_for_tasks`。
 - **Allowed Paths**: 该岗位可访问的文件目录及读写模式。
 - **Context**: 注入到 Agent 身份中的特定上下文指令。
 
@@ -32,7 +32,7 @@
 - **Skills**:
   - `code-modification`: 安全编辑文件的能力。
   - `git-operations`: 提交和推送代码更改的能力。
-- **Tools**: `read_file`, `write_file`, `edit_file`, `run_command`, `list_dir`.
+- **Tools**: `read_file`, `write_file`, `edit_file`, `exec`, `list_dir`.
 - **Allowed Paths**:
   - `workspace/` (读写)
 - **Context**:
@@ -46,7 +46,7 @@
 - **Skills**:
   - `doc-writing`: 技术文档模板。
   - `markdown-formatting`: 确保标准的 MD 格式。
-- **Tools**: `read_file`, `write_file`, `edit_file`, `grep_search`.
+- **Tools**: `read_file`, `write_file`, `edit_file`, `list_dir`.
 - **Allowed Paths**:
   - `workspace/docs/` (读写)
   - `workspace/tasks/` (只读)
@@ -61,7 +61,7 @@
 - **Skills**:
   - `code-review`: 代码质量分析。
   - `compliance-check`: 验证文档是否符合 Schema。
-- **Tools**: `read_file`, `grep_search`.
+- **Tools**: `read_file`, `list_dir`.
 - **Allowed Paths**:
   - `workspace/reports/` (只读)
   - `workspace/tasks/` (只读)
@@ -78,12 +78,14 @@
 - **Skills**:
   - `task-decomposition`: 将高层目标分解为步骤。
   - `worker-management`: 生成和协调 Worker。
-- **Tools**: `spawn_worker`, `read_file`, `write_file`.
+- **Tools**: `list_posts`, `spawn_worker`, `wait_for_tasks`, `read_file`, `write_file`.
 - **Allowed Paths**:
   - `workspace/` (读写)
 - **Context**:
   > 你是项目经理。
   > 驱动 PDCA 循环。
+  > 先调用 `list_posts` 再委派任务，并在每一批任务后调用 `wait_for_tasks`。
+  > 如果工具调用失败，先修正参数或任务描述，禁止重复相同调用。
   > 监控 `workspace/tasks` 目录。
 
 ### 2.5 天气分析师 (Post_Weather_Analyst)

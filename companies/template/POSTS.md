@@ -7,7 +7,7 @@
 - **Title**: 岗位的唯一标识符，格式为 `Post_<Name>`。
 - **Description**: 角色的自然语言描述。
 - **Skills**: 需要从 `skills/` 加载的技能列表。
-- **Tools**: 内置工具权限列表。可选值: `read_file`, `write_file`, `edit_file`, `list_dir`, `exec`, `web_search`, `web_fetch`, `document_flow`, `spawn_worker`。
+- **Tools**: 内置工具权限列表。可选值: `read_file`, `write_file`, `edit_file`, `list_dir`, `exec`, `web_search`, `web_fetch`, `document_flow`, `list_posts`, `spawn_worker`, `wait_for_tasks`。
 - **Allowed Paths**: 该岗位可访问的文件目录及读写模式。格式: `` `路径` (读写|只读) ``。
 - **Context**: 注入到 Agent 身份中的特定上下文指令，使用引用块 (`>`) 书写。
 
@@ -39,7 +39,7 @@
 - **Skills**:
   - `task-decomposition`: 将高层目标分解为步骤。
   - `worker-management`: 生成和协调 Worker。
-- **Tools**: `spawn_worker`, `read_file`, `write_file`.
+- **Tools**: `list_posts`, `spawn_worker`, `wait_for_tasks`, `read_file`, `write_file`.
 - **Allowed Paths**:
   - `workspace/` (读写)
 - **Context**:
@@ -52,7 +52,7 @@
 - **Skills**:
   - `code-review`: 代码质量分析。
   - `compliance-check`: 验证文档是否符合 Schema。
-- **Tools**: `read_file`, `grep_search`.
+- **Tools**: `read_file`, `list_dir`.
 - **Allowed Paths**:
   - `workspace/reports/` (只读)
   - `workspace/tasks/` (只读)

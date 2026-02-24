@@ -2,6 +2,14 @@
 
 本文档定义了元Agent公司内的标准操作程序 (SOP) 和公文流转。所有工作**必须**遵循 PDCA 循环。
 
+## 0. Manager 执行纪律（强制）
+
+- 任何委派前，先调用 `list_posts`，只使用返回的岗位 ID。
+- 采用 TODO 队列推进流程：每个 TODO 必须写明负责人岗位、输入、预期产出、完成标准。
+- 每次 `spawn_worker` 后记录 task id；每批任务结束后必须调用 `wait_for_tasks`。
+- `wait_for_tasks` 未完成前，禁止进入下一阶段。
+- 如出现失败，先修订任务描述和参数，再重试；禁止重复相同工具调用。
+
 ## 1. 核心 PDCA 循环
 
 ### 阶段 1: 计划 (Plan)
@@ -43,17 +51,17 @@
 这是 Company Factory 的核心工作流，将"创建新公司"分解为串行的四步。
 
 1. **用户/Manager** 创建 `TASK_Create_<CompanyName>.md`，包含新公司的需求描述。
-2. **Manager** 生成 `Post_Requirements_Analyst`。
+2. **Manager** 调用 `list_posts`，确认存在 `Post_Requirements_Analyst`，再调用 `spawn_worker` 派发任务。
 3. **Analyst** 分析需求，产出 `REQ_<CompanyName>.md`（需求规格书）。
-4. **Manager** 生成 `Post_Company_Architect`。
+4. **Manager** 调用 `wait_for_tasks` 确认分析任务完成后，再派发 `Post_Company_Architect`。
 5. **Architect** 设计架构，产出 `SKILL.md` 和 `POSTS.md`，存放在 `workspace/deliverables/<company_name>/`。
-6. **Manager** 生成 `Post_Schema_Designer`。
+6. **Manager** 调用 `wait_for_tasks` 后派发 `Post_Schema_Designer`。
 7. **Designer** 设计公文规范，产出 `DOCS_SCHEMA.md`，存放在 `workspace/deliverables/<company_name>/`。
-8. **Manager** 生成 `Post_Workflow_Engineer`。
+8. **Manager** 派发 `Post_Workflow_Engineer`。
 9. **Engineer** 设计工作流，产出 `WORKFLOWS.md`，存放在 `workspace/deliverables/<company_name>/`。
-10. **Manager** 生成 `Post_Integration_Auditor`。
+10. **Manager** 调用 `wait_for_tasks`（等待 6-9 完成）后派发 `Post_Integration_Auditor`。
 11. **Auditor** 审核全部配置文件，产出 `AUDIT_INTEGRATION_<CompanyName>.md`。
-12. **Manager** 审查审计结果：
+12. **Manager** 调用 `wait_for_tasks` 收集审计结论并执行：
     - 如果通过: 部署配置文件到 `companies/<company_name>/`，归档任务。
     - 如果失败: 针对失败项创建整改任务单，指派对应 Worker 修复。
 

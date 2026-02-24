@@ -1,8 +1,11 @@
 import pytest
 import asyncio
+import json
 from unittest.mock import MagicMock, AsyncMock, patch
 from pathlib import Path
 from nanobot.agent.subagent import SubagentManager
+from nanobot.agent.tools.list_posts import ListPostsTool
+from nanobot.providers.base import LLMResponse, ToolCallRequest
 from nanobot.company.loader import CompanyConfigLoader, Post
 
 # Mock data
@@ -98,9 +101,102 @@ async def test_spawn_worker(mock_workspace):
 
 @pytest.mark.asyncio
 async def test_spawn_worker_invalid_post(mock_workspace):
-    provider = AsyncMock()
+    provider = MagicMock()
+    provider.get_default_model.return_value = "gpt-4"
+    provider.chat = AsyncMock()
     bus = AsyncMock()
     manager = SubagentManager(provider, mock_workspace, bus)
     
     result = await manager.spawn_worker("Post_Invalid", "Task")
     assert "Error: Post 'Post_Invalid' not found" in result
+    assert "Available posts: [Post_TestWorker]" in result
+    assert "list_posts" in result
+
+
+@pytest.mark.asyncio
+async def test_list_posts_tool_returns_posts(mock_workspace):
+    provider = MagicMock()
+    provider.get_default_model.return_value = "gpt-4"
+    provider.chat = AsyncMock()
+    bus = AsyncMock()
+    manager = SubagentManager(provider, mock_workspace, bus)
+    tool = ListPostsTool(manager)
+
+    raw = await tool.execute()
+    payload = json.loads(raw)
+    assert payload["posts"] == ["Post_TestWorker"]
+
+    raw_detailed = await tool.execute(include_details=True)
+    payload_detailed = json.loads(raw_detailed)
+    assert "Post_TestWorker" in payload_detailed["posts"]
+    assert payload_detailed["posts"]["Post_TestWorker"]["tools"] == ["read_file", "exec"]
+
+
+@pytest.mark.asyncio
+async def test_run_subagent_blocks_repeated_identical_tool_calls(mock_workspace):
+    provider = AsyncMock()
+    provider.get_default_model.return_value = "gpt-4"
+    provider.chat = AsyncMock(
+        side_effect=[
+            LLMResponse(
+                content=None,
+                tool_calls=[
+                    ToolCallRequest(
+                        id="tc1",
+                        name="read_file",
+                        arguments={"path": str(mock_workspace / "missing.txt")},
+                    )
+                ],
+            ),
+            LLMResponse(
+                content=None,
+                tool_calls=[
+                    ToolCallRequest(
+                        id="tc2",
+                        name="read_file",
+                        arguments={"path": str(mock_workspace / "missing.txt")},
+                    )
+                ],
+            ),
+            LLMResponse(
+                content=None,
+                tool_calls=[
+                    ToolCallRequest(
+                        id="tc3",
+                        name="read_file",
+                        arguments={"path": str(mock_workspace / "missing.txt")},
+                    )
+                ],
+            ),
+            LLMResponse(
+                content=None,
+                tool_calls=[
+                    ToolCallRequest(
+                        id="tc4",
+                        name="read_file",
+                        arguments={"path": str(mock_workspace / "missing.txt")},
+                    )
+                ],
+            ),
+        ]
+    )
+    bus = AsyncMock()
+
+    manager = SubagentManager(provider=provider, workspace=mock_workspace, bus=bus)
+    task_id = "looptest1"
+    manager.registry.register(task_id, "Post_TestWorker", "Repeat read_file forever")
+
+    await manager._run_subagent(
+        task_id=task_id,
+        task="Repeat read_file forever",
+        label="loop-guard",
+        origin={"channel": "cli", "chat_id": "direct"},
+        post_id="Post_TestWorker",
+    )
+
+    state = manager.registry.get(task_id)
+    assert state is not None
+    assert state.status == "completed"
+    assert state.result is not None
+    assert "infinite tool loop" in state.result.lower()
+    assert provider.chat.await_count == 4
