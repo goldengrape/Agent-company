@@ -21,11 +21,25 @@ class ContextBuilder:
     
     BOOTSTRAP_FILES = ["AGENTS.md", "SOUL.md", "USER.md", "TOOLS.md", "IDENTITY.md"]
     
-    def __init__(self, workspace: Path, agent_id: str | None = None):
+    def __init__(
+        self,
+        workspace: Path,
+        agent_id: str | None = None,
+        company_name: str | None = None,
+        company_path: str | None = None,
+    ):
         self.workspace = workspace
         self.memory = MemoryStore(workspace, agent_id=agent_id)
-        self.skills = SkillsLoader(workspace)
-        self.company_loader = CompanyConfigLoader(workspace)
+        self.company_loader = CompanyConfigLoader(
+            workspace,
+            company_name=company_name,
+            company_path=company_path,
+        )
+        self.company_loader.load_all()
+        self.skills = SkillsLoader(
+            workspace,
+            company_skills_dir=self.company_loader.skills_dir,
+        )
         
     def get_agent_identity(self, post_id: str) -> str:
         """

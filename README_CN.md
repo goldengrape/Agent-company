@@ -76,9 +76,9 @@ nanobot company init --name <company_name>
 
 ### 4. 委派任务 (Delegate Tasks)
 
-在 `workspace/tasks` 目录下创建 Markdown 文件委派任务。
+在 `workspace/tasks` 目录下创建文件名匹配 `TASK_*.md` 的 Markdown 任务文件。
 
-**示例**: 创建 `workspace/tasks/任意文件名.md`
+**示例**: 创建 `workspace/tasks/TASK_任意文件名.md`
 *(Manager 将自动将其分派给默认岗位)*
 
 ```markdown
@@ -103,7 +103,7 @@ nanobot company run --name <company_name> --task ./path/to/task.md
 nanobot company run --path ./private_companies/my_company
 ```
 
-Manager 将自动启动，监控 `workspace/tasks`，根据文件名将任务分发给对应的 Agent，并生成报告到 `workspace/reports`。
+Manager 将自动启动，扫描 `workspace/tasks` 中符合 `TASK_*.md` 的任务文件，并根据公司配置分发给对应 Agent，生成报告到 `workspace/reports`。
 
 ---
 
@@ -137,3 +137,4 @@ nanobot agent
 ## 📄 许可证
 
 MIT License
+

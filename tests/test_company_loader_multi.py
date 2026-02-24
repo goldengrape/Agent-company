@@ -105,3 +105,38 @@ components:
     # Should contain Custom but NOT Standard (unless logic changed to merge, but currently it's one or other)
     assert "Post_Custom" in loader.posts
     assert "Post_Standard" not in loader.posts
+
+
+def test_skill_md_loads_skills_dir_and_workflows(workspace):
+    """Test SKILL.md-based skills_dir/workflows loading."""
+    gamma_dir = workspace / "companies" / "gamma"
+    gamma_dir.mkdir(parents=True)
+
+    (gamma_dir / "SKILL.md").write_text(
+        """---
+components:
+  posts: "./POSTS.md"
+  workflows: "./WORKFLOWS.md"
+  skills_dir: "./company_skills"
+---""",
+        encoding="utf-8",
+    )
+    (gamma_dir / "POSTS.md").write_text(
+        """
+### 2.1 Gamma Agent (Post_Gamma)
+- **Description**: Gamma agent.
+        """,
+        encoding="utf-8",
+    )
+    (gamma_dir / "WORKFLOWS.md").write_text(
+        "# Workflows\n\nPlan -> Do -> Check -> Act",
+        encoding="utf-8",
+    )
+    (gamma_dir / "company_skills").mkdir(parents=True)
+
+    loader = CompanyConfigLoader(workspace, company_name="gamma")
+    loader.load_all()
+
+    assert loader.skills_dir == (gamma_dir / "company_skills").resolve()
+    assert loader.workflows_path == (gamma_dir / "WORKFLOWS.md").resolve()
+    assert "Plan -> Do -> Check -> Act" in loader.workflows_content

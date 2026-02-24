@@ -75,9 +75,9 @@ Capabilities are extended through configuration, not code.
 
 ### 4. Delegate Tasks
 
-Create Markdown files in `workspace/tasks` to delegate tasks.
+Create Markdown files matching `TASK_*.md` in `workspace/tasks` to delegate tasks.
 
-**Example**: Create `workspace/tasks/ANY_NAME.md`
+**Example**: Create `workspace/tasks/TASK_ANY_NAME.md`
 *(Manager will automatically assign it to the default post)*
 
 ```markdown
@@ -135,3 +135,4 @@ PRs and Issues are welcome! Let's build a more efficient AI collaborative organi
 ## 📄 License
 
 MIT License
+

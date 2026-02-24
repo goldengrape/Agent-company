@@ -18,7 +18,6 @@ from nanobot.agent.tools.web import WebSearchTool, WebFetchTool
 from nanobot.company.loader import CompanyConfigLoader
 from nanobot.agent.context import ContextBuilder
 from nanobot.agent.skills import SkillsLoader
-from nanobot.agent.skills import SkillsLoader
 from nanobot.agent.worker_registry import WorkerRegistry
 from nanobot.agent.tools.document_flow import DocumentFlowTool
 from nanobot.agent.tools.spawn_worker import SpawnWorkerTool
@@ -60,6 +59,8 @@ class SubagentManager:
         self.brave_api_key = brave_api_key
         self.exec_config = exec_config or ExecToolConfig()
         self.restrict_to_workspace = restrict_to_workspace
+        self.company_name = company_name
+        self.company_path = company_path
         self.company_loader = CompanyConfigLoader(workspace, company_name, company_path=company_path)
         # Note: ContextBuilder and SkillsLoader will be instantiated per-subagent 
         # to ensure isolation, or we pass specific agent_id to them.
@@ -214,8 +215,16 @@ class SubagentManager:
             
             # ISOLATION: Instantiate components for THIS specific agent_id (task_id)
             # This ensures memory is at workspace/memory/workers/{task_id}/
-            isolated_context = ContextBuilder(self.workspace, agent_id=task_id)
-            isolated_skills = SkillsLoader(self.workspace)
+            isolated_context = ContextBuilder(
+                self.workspace,
+                agent_id=task_id,
+                company_name=self.company_name,
+                company_path=self.company_path,
+            )
+            isolated_skills = SkillsLoader(
+                self.workspace,
+                company_skills_dir=self.company_loader.skills_dir,
+            )
             
             # Initialize isolated memory store
             memory_store = MemoryStore(self.workspace, agent_id=task_id)
@@ -381,16 +390,19 @@ Summarize this naturally for the user. Keep it brief (1-2 sentences). Do not men
             ),
             "web_search": lambda: WebSearchTool(api_key=self.brave_api_key),
             "web_fetch": lambda: WebFetchTool(),
-            "document_flow": lambda: DocumentFlowTool(self.workspace),
+            "document_flow": lambda: DocumentFlowTool(
+                self.workspace,
+                company_name=self.company_name,
+                company_path=self.company_path,
+            ),
             "spawn_worker": lambda: SpawnWorkerTool(self),
             "wait_for_tasks": lambda: WaitForTasksTool(self),
         }
         
         # 1. Start with empty list
         tools_to_register = []
-        is_restricted_post = (post is not None) and (len(post.tools) > 0)
-        
-        if is_restricted_post:
+
+        if post is not None and post.tools:
             logger.info(f"STRICT MODE: Restricting tools for '{post.title}'. Allowed: {post.tools}")
             for tool_name in post.tools:
                 if tool_name in all_tools:
@@ -398,6 +410,12 @@ Summarize this naturally for the user. Keep it brief (1-2 sentences). Do not men
                     tools_to_register.append(all_tools[tool_name]())
                 else:
                     logger.warning(f"  [?] Unknown tool requested: {tool_name}")
+        elif post is not None:
+            # Fail-closed for role-defined workers without explicit tools.
+            logger.warning(
+                f"STRICT MODE: Post '{post.title}' has no tools declared. "
+                "Granting no tools."
+            )
         else:
             logger.warning("UNRESTRICTED MODE: No tools defined in Post (or no Post). Granting ALL tools.")
             for name, factory in all_tools.items():
@@ -426,6 +444,9 @@ Summarize this naturally for the user. Keep it brief (1-2 sentences). Do not men
         # Get memory paths for the prompt
         long_term_path = memory_store.memory_file
         history_path = memory_store.history_file
+        company_skills_line = ""
+        if self.company_loader.skills_dir:
+            company_skills_line = f"\n- Company skills: {self.company_loader.skills_dir}/{{skill-name}}/SKILL.md"
 
         return f"""# Subagent
 
@@ -453,7 +474,7 @@ You are a subagent spawned by the main agent to complete a specific task.
 
 ## Workspace
 Your workspace is at: {self.workspace}
-Skills are available at: {self.workspace}/skills/ (read SKILL.md files as needed)
+Skills are available at: {self.workspace}/skills/{{skill-name}}/SKILL.md{company_skills_line}
 
 ## Memory (Isolated)
 - Long-term memory: {long_term_path}

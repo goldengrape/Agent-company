@@ -1,15 +1,26 @@
 """File system tools: read, write, edit."""
 
+import os
 from pathlib import Path
 from typing import Any, List, Dict
 
 from nanobot.agent.tools.base import Tool
 
 
+def _is_subpath(target: Path, base: Path) -> bool:
+    """Return True when target is inside base (or equal to base)."""
+    try:
+        target_norm = os.path.normcase(str(target.resolve()))
+        base_norm = os.path.normcase(str(base.resolve()))
+        return os.path.commonpath([target_norm, base_norm]) == base_norm
+    except Exception:
+        return False
+
+
 def _resolve_path(path: str, allowed_dir: Path | None = None) -> Path:
     """Resolve path and optionally enforce directory restriction."""
     resolved = Path(path).expanduser().resolve()
-    if allowed_dir and not str(resolved).startswith(str(allowed_dir.resolve())):
+    if allowed_dir and not _is_subpath(resolved, allowed_dir):
         raise PermissionError(f"Path {path} is outside allowed directory {allowed_dir}")
     return resolved
 
@@ -34,16 +45,14 @@ def _check_allowed_paths(
     if not allowed_paths:
         return  # No restrictions defined = allow all
 
-    resolved_str = str(resolved_path).replace("\\", "/").lower()
-
     for entry in allowed_paths:
         entry_path = entry.get("path", "")
         entry_mode = entry.get("mode", "r")
 
         # Resolve allowed path relative to workspace
-        abs_allowed = str((workspace / entry_path).resolve()).replace("\\", "/").lower()
+        abs_allowed = (workspace / entry_path).resolve()
 
-        if resolved_str.startswith(abs_allowed):
+        if _is_subpath(resolved_path, abs_allowed):
             # Path matches — check mode
             if mode == "r":
                 return  # Read is always allowed if path matches

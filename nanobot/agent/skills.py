@@ -18,9 +18,15 @@ class SkillsLoader:
     specific tools or perform certain tasks.
     """
     
-    def __init__(self, workspace: Path, builtin_skills_dir: Path | None = None):
+    def __init__(
+        self,
+        workspace: Path,
+        builtin_skills_dir: Path | None = None,
+        company_skills_dir: Path | None = None,
+    ):
         self.workspace = workspace
         self.workspace_skills = workspace / "skills"
+        self.company_skills = company_skills_dir
         self.builtin_skills = builtin_skills_dir or BUILTIN_SKILLS_DIR
     
     def list_skills(self, filter_unavailable: bool = True) -> list[dict[str, str]]:
@@ -42,6 +48,14 @@ class SkillsLoader:
                     skill_file = skill_dir / "SKILL.md"
                     if skill_file.exists():
                         skills.append({"name": skill_dir.name, "path": str(skill_file), "source": "workspace"})
+
+        # Company skills (middle priority)
+        if self.company_skills and self.company_skills.exists():
+            for skill_dir in self.company_skills.iterdir():
+                if skill_dir.is_dir():
+                    skill_file = skill_dir / "SKILL.md"
+                    if skill_file.exists() and not any(s["name"] == skill_dir.name for s in skills):
+                        skills.append({"name": skill_dir.name, "path": str(skill_file), "source": "company"})
         
         # Built-in skills
         if self.builtin_skills and self.builtin_skills.exists():
@@ -71,6 +85,12 @@ class SkillsLoader:
         if workspace_skill.exists():
             return workspace_skill.read_text(encoding="utf-8")
         
+        # Check built-in
+        if self.company_skills:
+            company_skill = self.company_skills / name / "SKILL.md"
+            if company_skill.exists():
+                return company_skill.read_text(encoding="utf-8")
+
         # Check built-in
         if self.builtin_skills:
             builtin_skill = self.builtin_skills / name / "SKILL.md"

@@ -1,67 +1,79 @@
-# CLI 命令行接口 (Command Line Interface)
+# CLI 命令行接口 (CLI)
 
-`nanobot/cli` 组件提供了与系统交互的主要入口。它基于 `Typer` 构建，支持丰富的终端交互体验（Rich, Prompt Toolkit）。
+本文档对应当前实现：`nanobot/cli/commands.py` 与 `nanobot/cli/company.py`。
 
-## 命令概览
+## 命令结构
 
-主要命令结构如下：
-
-```bash
+```text
 nanobot
-├── onboard     # 初始化配置和工作区
-├── agent       # 直接与 Agent 对话
-├── gateway     # 启动网关服务 (Gateway Service)
-├── company     # 公司管理相关指令
-│   ├── init    # 初始化公司结构
-│   └── run     # 运行公司经理 (处理任务)
-├── channels    # 渠道管理相关指令
-│   ├── status  # 查看渠道状态
-│   └── login   # 扫码登录 (如 WhatsApp)
-└── cron        # 定时任务管理
-    ├── list    # 列出任务
-    └── add     # 添加任务
+├── onboard
+├── agent
+├── gateway
+├── status
+├── company
+│   ├── init
+│   └── run
+├── channels
+│   ├── status
+│   └── login
+├── cron
+│   ├── list
+│   ├── add
+│   ├── remove
+│   ├── enable
+│   └── run
+└── provider
+    └── login
 ```
 
-## 核心命令详解
+## 关键命令行为
 
-### 1. `onboard` (初始化)
+### `nanobot onboard`
+- 初始化配置文件（优先当前目录 `config.json`，否则 `~/.nanobot/config.json`）。
+- 初始化工作区（默认 `~/.nanobot/workspace`）。
+- 生成引导文件（`AGENTS.md`、`SOUL.md`、`USER.md`）和内存目录。
 
-这是用户使用 Nanobot 的第一步。
-- **功能**:
-    - 创建默认配置文件 `~/.nanobot/config.json`。
-    - 创建工作区目录 `~/.nanobot/workspace`。
-    - 生成 Bootstrap 模板文件 (`AGENTS.md`, `SOUL.md`, `USER.md`)。
-    - 初始化记忆文件 (`MEMORY.md`, `HISTORY.md`)。
+### `nanobot agent`
+- 支持一次性消息：`-m/--message`。
+- 支持交互模式（`prompt_toolkit` 历史与编辑）。
+- 支持 `--session` 指定会话键（默认 `cli:direct`）。
+- `--markdown/--no-markdown` 控制渲染。
 
-### 2. `agent` (对话)
+### `nanobot gateway`
+- 启动 Message Bus、AgentLoop、ChannelManager、CronService、HeartbeatService。
+- 默认端口 `18790`。
 
-直接在终端与 Agent 进行交互。
+### `nanobot company init --name <name>`
+- 在 `workspace/companies/<name>/` 创建：
+  - `SKILL.md`
+  - `POSTS.md`
+  - `WORKFLOWS.md`
+  - `DOCS_SCHEMA.md`
 
-- **交互模式**: 运行 `nanobot agent` 进入 REPL 模式。支持上下键历史记录、多行粘贴。
-- **单次模式**: `nanobot agent -m "Hello"` 执行一次并退出，适合脚本调用。
-- **参数**:
-    - `--logs`: 开启详细运行日志（调试用）。
-    - `--no-markdown`:虽然默认渲染 Markdown，但可关闭以获取原始文本。
+### `nanobot company run`
+- 默认扫描 `workspace/tasks/TASK_*.md`。
+- 可用 `--task` 直接输入任务文本或任务文件路径。
+- 可用 `--name` 或 `--path` 选择公司配置。
+- 可用 `--output` 指定产出目录（会传递到 worker 指令模板）。
 
-### 3. `gateway` (网关服务)
+## 渠道与定时
 
-启动常驻后台的服务进。
+### `nanobot channels status`
+- 读取配置并输出各渠道启用状态。
 
-- **功能**:
-    - 启动 `Message Bus`。
-    - 启动 `Agent Loop`。
-    - 启动外部通信 `Channel Manager` (Telegram, WhatsApp 等)。
-    - 启动 `Cron Service` (定时任务) 和 `Heartbeat Service` (心跳检测)。
-- **端口**: 默认为 `18790`。
+### `nanobot channels login`
+- 启动 bridge（主要用于扫码接入场景，如 WhatsApp）。
 
-### 4. `company` (公司管理)
+### `nanobot cron *`
+- 提供 `list/add/remove/enable/run` 完整生命周期管理。
 
-- `init`: 确保 `workspace/company` 目录存在。
-- `run`: 手动触发一次公司经理的任务扫描循环 (`CompanyManager.run()`)。这是目前触发任务处理的主要方式。
+## Provider 登录
 
-## 技术实现细节
+### `nanobot provider login openai-codex`
+- 走 OAuth 流程，不依赖 API key 字段。
 
-- **框架**: 使用 `Typer` 定义命令行参数。
-- **UI 渲染**: 使用 `Rich` 库渲染 Markdown、表格和彩色输出。
-- **交互输入**: 使用 `prompt_toolkit` 处理复杂的终端输入（如多行编辑），解决了标准 `input()` 的诸多限制。
-- **异步支持**: 虽然 Typer 本身是同步的，但内部通过 `asyncio.run()` 调用异步的 Agent 和 Service 逻辑。
+## 配置格式
+
+当前仅使用 JSON 配置，不使用 `config.yaml`。
+- 本地优先：`./config.json`
+- 默认：`~/.nanobot/config.json`

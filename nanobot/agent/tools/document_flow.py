@@ -60,9 +60,18 @@ class DocumentFlowTool(Tool):
             "required": ["action"]
         }
     
-    def __init__(self, workspace: Path):
+    def __init__(
+        self,
+        workspace: Path,
+        company_name: str | None = None,
+        company_path: str | None = None,
+    ):
         self.workspace = workspace
-        self.loader = CompanyConfigLoader(workspace)
+        self.loader = CompanyConfigLoader(
+            workspace,
+            company_name=company_name,
+            company_path=company_path,
+        )
         self.memory = MemoryStore(workspace)
         
     async def execute(self, action: str, **kwargs) -> str:

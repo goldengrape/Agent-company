@@ -33,6 +33,9 @@ class CompanyConfigLoader:
         self.schemas: Dict[str, Schema] = {}
         self.default_post: str | None = None
         self.default_task_template: str | None = None
+        self.skills_dir: Path | None = None
+        self.workflows_path: Path | None = None
+        self.workflows_content: str = ""
 
     def _resolve_base_path(self) -> Path:
         """Resolve the base path for company configuration."""
@@ -56,13 +59,19 @@ class CompanyConfigLoader:
         
     def load_all(self):
         """Load all configuration files."""
+        # Reset in-memory state on each load to avoid stale/duplicated entries.
+        self.posts = {}
+        self.schemas = {}
+        self.skills_dir = None
+        self.workflows_path = None
+        self.workflows_content = ""
+
         # Try loading from SKILL.md first
         if not self._load_from_skill_def():
             # Fallback to legacy default files
             self._load_posts()
             self._load_schemas()
-            
-        # self._load_workflows() # Placeholder
+            self._load_workflows()
 
     def _load_from_skill_def(self) -> bool:
         """
@@ -83,8 +92,16 @@ class CompanyConfigLoader:
                 
             self.default_post = frontmatter.get("default_post")
             self.default_task_template = frontmatter.get("default_task_template")
+            # Support both top-level and components.skills_dir conventions.
+            raw_skills_dir = frontmatter.get("skills_dir")
             
             components = frontmatter.get("components") or {}
+            if not raw_skills_dir:
+                raw_skills_dir = components.get("skills_dir")
+            if raw_skills_dir:
+                self.skills_dir = (self.base_path / raw_skills_dir).resolve()
+            else:
+                self.skills_dir = None
             
             # Load components based on paths in SKILL.md
             # Note: paths in SKILL.md are relative to SKILL.md location (base_path)
@@ -98,6 +115,11 @@ class CompanyConfigLoader:
                 schema_path = self.base_path / components["docs_schema"]
                 if schema_path.exists():
                     self._parse_schemas_content(schema_path.read_text(encoding="utf-8"))
+
+            if "workflows" in components:
+                workflows_path = self.base_path / components["workflows"]
+                if workflows_path.exists():
+                    self._load_workflows_file(workflows_path)
             
             return True
         except Exception as e:
@@ -122,6 +144,18 @@ class CompanyConfigLoader:
             
         content = schema_file.read_text(encoding="utf-8")
         self._parse_schemas_content(content)
+
+    def _load_workflows(self):
+        """Load WORKFLOWS.md content for downstream orchestration."""
+        workflows_file = self.base_path / "WORKFLOWS.md"
+        if not workflows_file.exists():
+            return
+        self._load_workflows_file(workflows_file)
+
+    def _load_workflows_file(self, workflows_file: Path):
+        """Load workflow file content and keep path metadata."""
+        self.workflows_path = workflows_file.resolve()
+        self.workflows_content = workflows_file.read_text(encoding="utf-8")
 
     def _parse_schemas_content(self, content: str):
         """

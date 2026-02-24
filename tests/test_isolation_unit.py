@@ -129,7 +129,12 @@ async def test_subagent_manager_uses_isolation(mock_workspace):
         
         # Verification:
         # Check if ContextBuilder was instantiated with agent_id=task_id
-        MockContextBuilder.assert_called_with(manager.workspace, agent_id=task_id)
+        MockContextBuilder.assert_called_with(
+            manager.workspace,
+            agent_id=task_id,
+            company_name=None,
+            company_path=None,
+        )
         
         # Check if get_agent_identity was called on the ISOLATED builder instance
         # MockContextBuilder.return_value is the instance

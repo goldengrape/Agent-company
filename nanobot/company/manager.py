@@ -124,7 +124,7 @@ class CompanyManager:
         # Collect and output results
         self._output_results()
 
-        # Cleanup worker records and memory
+        # Cleanup transient worker memory after result collection
         self._cleanup_workers()
 
     def _output_results(self):
@@ -157,14 +157,15 @@ class CompanyManager:
         print(f"\n📁 Output directory: {output_dir}")
 
     def _cleanup_workers(self):
-        """Cleanup worker registry and memory for spawned tasks."""
+        """Cleanup worker memory for spawned tasks while retaining registry audit history."""
         if not self._spawned_task_ids:
             return
 
-        logger.info(f"Cleaning up {len(self._spawned_task_ids)} workers...")
+        logger.info(
+            f"Cleaning up memory for {len(self._spawned_task_ids)} workers "
+            "(registry retained for audit)..."
+        )
         for task_id in self._spawned_task_ids:
-            # Unregister from workers.json
-            self.registry.unregister(task_id)
             # Clear worker-specific memory directory
             memory = MemoryStore(self.workspace, agent_id=task_id)
             memory.clear()
